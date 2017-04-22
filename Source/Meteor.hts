@@ -70,6 +70,18 @@ Meteor.New = function(
         type_effect
     );
 
+    let rotation_orientation;
+    let rnd = math.random(2);
+
+    print(rnd);
+
+    if (rnd == 1) {
+        rotation_orientation = 1;
+    }
+    else {
+        rotation_orientation = -1;
+    }
+
     return #{
         type_terraformation: type_terraformation,
         type_effect: type_effect,
@@ -79,7 +91,9 @@ Meteor.New = function(
             y: math.sin(origin) * Meteor.ORIGIN_RADIUS 
         },
         origin: origin,
-        draw_model: draw_model
+        draw_model: draw_model,
+        rotation: 0,
+        rotation_orientation: rotation_orientation 
     };
 }
 
@@ -89,14 +103,17 @@ Meteor.Draw = function(meteor)
         meteor.draw_model,
         meteor.position.x,
         meteor.position.y,
-        0
+        meteor.rotation
     );
 }
 
 Meteor.Update = function(meteor, dt) 
 {
     meteor.position.x -= math.cos(meteor.origin) * Meteor.SPEED * dt;   
-    meteor.position.y -= math.sin(meteor.origin) * Meteor.SPEED * dt;   
+    meteor.position.y -= math.sin(meteor.origin) * Meteor.SPEED * dt;
+    meteor.rotation += dt * meteor.rotation_orientation;
+    // meteor.rotation += dt;
+
     // meteor.position.x -= math.cos(meteor.origin) * Meteor.SPEED * 1;   
     // meteor.position.y -= math.sin(meteor.origin) * Meteor.SPEED * 1;   
 }

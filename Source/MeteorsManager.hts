@@ -2,7 +2,7 @@ require('meteor');
 
 MeteorsManager = #;
 
-let TIMER_INITIAL_STATE = 7;
+let TIMER_INITIAL_STATE = 10;
 let MAX_METEORS = 3;
 let timer = TIMER_INITIAL_STATE;
 
