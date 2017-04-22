@@ -1,76 +1,98 @@
 
+require('constants');
+
+//
+
 Planet = #;
 
 //
 
-Planet.CORE_SIDES = 16;
-Planet.CORE_RADIUS = 5;
-
-Planet.MANTLE_SIDES = 24;
-Planet.MANTLE_RADIUS = 15;
-
 Planet.CRUST_SIDES = 64;
-Planet.CRUST_RADIUS = 30;
+Planet.CRUST_RADIUS = 100;
+
+Planet.IMPACT_HIGH = 0.9;
+Planet.IMPACT_MED = 0.7;
+Planet.IMPACT_LOW = 0.3;
 
 //
 
 Planet.New = function()
 {
-	let o = #;
+	let planet = #;
 
-	// Generate core vertices
+	Planet.CreateCrust(planet);
 
-	o.core_mesh = love.graphics.newMesh(Planet.CORE_SIDES, 'fan', 'dynamic');
-
-	for(let i = 1 ... Planet.CORE_SIDES)
-	{
-		let h = math.rad(i * (360 / Planet.CORE_SIDES));
-
-		o.core_mesh->setVertex(i,
-			math.cos(h) * Planet.CORE_RADIUS,
-			math.sin(h) * Planet.CORE_RADIUS,
-			0, 0, 224, 130, 98, 255
-		);
-	}
-
-	// Generate mantle vertices
-
-	o.mantle_mesh = love.graphics.newMesh(Planet.MANTLE_SIDES, 'fan', 'static');
-
-	for(let i = 1 ... Planet.MANTLE_SIDES)
-	{
-		let h = math.rad(i * (360 / Planet.MANTLE_SIDES));
-
-		o.mantle_mesh->setVertex(i,
-			math.cos(h) * Planet.MANTLE_RADIUS,
-			math.sin(h) * Planet.MANTLE_RADIUS,
-			0, 0, 142, 129, 102, 255
-		);
-	}
-
-	// Generate crust vertices
-
-	o.crust_mesh = love.graphics.newMesh(Planet.CRUST_SIDES, 'fan', 'dynamic');
-
-	for(let i = 1 ... Planet.CRUST_SIDES)
-	{
-		let h = math.rad(i * (360 / Planet.CRUST_SIDES));
-
-		o.crust_mesh->setVertex(i,
-			math.cos(h) * Planet.CRUST_RADIUS,
-			math.sin(h) * Planet.CRUST_RADIUS,
-			0, 0, 140, 183, 91, 255
-		);
-	}
-
-	return o;
+	return planet;
 };
 
 //
 
-Planet.Draw = function(o)
+Planet.CreateCrust = function(planet)
 {
-	love.graphics.draw(o.crust_mesh,640,360);
-	love.graphics.draw(o.mantle_mesh,640,360);
-	love.graphics.draw(o.core_mesh,640,360);
+	let vertices = #;
+	let indices = #;
+
+	table.insert(vertices, #{ 0, 0 });
+
+	for(let i = 2 ... Planet.CRUST_SIDES)
+	{
+		let h = math.rad(i * (360 / (Planet.CRUST_SIDES - 1)));
+
+		table.insert(vertices,#{
+			math.cos(h) * Planet.CRUST_RADIUS,
+			math.sin(h) * Planet.CRUST_RADIUS,
+			0, 0, 255, 255, 255, 255
+		});
+	}
+
+	for(let i = 2 ... Planet.CRUST_SIDES - 1)
+	{
+		table.insert(indices, 1);
+		table.insert(indices, i + 1);
+		table.insert(indices, i);
+	}
+
+	table.insert(indices, 1);
+	table.insert(indices, 2);
+	table.insert(indices, Planet.CRUST_SIDES);
+
+	planet.crust_mesh = love.graphics.newMesh(vertices, 'triangles', 'dynamic');
+
+	planet.crust_mesh->setVertexMap(indices);
+};
+
+//
+
+Planet.Draw = function(planet)
+{
+	love.graphics.draw(planet.crust_mesh,Constants.CENTER.x,Constants.CENTER.y);
+};
+
+//
+
+Planet.Impact = function(planet, i, force)
+{
+	Planet.ImpactPoint(planet, i, force * Planet.IMPACT_HIGH);
+
+	Planet.ImpactPoint(planet, i + 1, force * Planet.IMPACT_MED);
+	Planet.ImpactPoint(planet, i - 1, force * Planet.IMPACT_MED);
+
+	Planet.ImpactPoint(planet, i + 2, force * Planet.IMPACT_LOW);
+	Planet.ImpactPoint(planet, i - 2, force * Planet.IMPACT_LOW);
+};
+
+//
+
+Planet.ImpactPoint = function(planet, i, force)
+{
+	if(i > Planet.CRUST_SIDES) { i -= Planet.CRUST_SIDES + 1; }
+	if(i < 2) { i += Planet.CRUST_SIDES; }
+
+	let x, y = planet.crust_mesh->getVertex(i);
+	let h = math.rad(i * (360 / (Planet.CRUST_SIDES - 1)));
+
+	planet.crust_mesh->setVertexAttribute(i, 1,
+		x + (math.cos(h) * force),
+		y + (math.sin(h) * force)
+	);
 };
