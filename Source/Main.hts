@@ -1,0 +1,19 @@
+
+love.load = function()
+{
+
+};
+
+//
+
+love.update = function(dt)
+{
+
+};
+
+//
+
+love.draw = function()
+{
+	
+}
