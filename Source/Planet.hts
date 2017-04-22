@@ -1,4 +1,8 @@
 
+require('meteor');
+
+//
+
 Planet = #;
 
 //
@@ -16,6 +20,8 @@ Planet.IMPACT_HIGH = 0.9;
 Planet.IMPACT_MED = 0.7;
 Planet.IMPACT_LOW = 0.3;
 
+Planet.ROTATION_SPEED = 50;
+
 //
 
 Planet.New = function()
@@ -23,6 +29,10 @@ Planet.New = function()
 	let planet = #;
 
 	Planet.CreateCrust(planet);
+
+	planet.rotation = 0;
+
+	planet.max_point = Planet.CRUST_RADIUS;
 
 	return planet;
 };
@@ -65,8 +75,25 @@ Planet.CreateCrust = function(planet)
 
 //
 
+Planet.Update = function(planet, dt)
+{
+	if(love.keyboard.isDown('right'))
+	{
+		planet.rotation += (Planet.ROTATION_SPEED * dt);
+	}
+	else if(love.keyboard.isDown('left'))
+	{
+		planet.rotation -= (Planet.ROTATION_SPEED * dt);
+	}
+};
+
+//
+
 Planet.Draw = function(planet)
 {
+	love.graphics.push();
+	love.graphics.rotate(math.rad(planet.rotation));
+
 	love.graphics.draw(planet.crust_mesh, 0, 0);
 
 	love.graphics.setColor(81, 63, 39, 255);
@@ -76,6 +103,30 @@ Planet.Draw = function(planet)
 	love.graphics.circle('fill', 0, 0, Planet.CORE_RADIUS, Planet.CORE_SIDES);
 
 	love.graphics.setColor(255, 255, 255, 255);
+	love.graphics.pop();
+};
+
+//
+
+Planet.Collides = function(planet, meteor)
+{
+	let max = planet.max_point * planet.max_point;
+	
+	let x = meteor.position.x;
+	let y = meteor.position.y;
+
+	if((x * x) + (y * y) > max) { return false, 0; }
+
+	let i = (Planet.CRUST_SIDES * math.deg(meteor.origin)) / 360;
+
+	let ix, iy = planet.crust_mesh->getVertexAttribute(i, 1);
+
+	x = (x * x) - (ix * ix);
+	y = (y * y) - (iy * iy);
+
+	if((x + y) > Meteor.MIN_RADIUS) { return false, 0; }
+
+	return true, i;
 };
 
 //
