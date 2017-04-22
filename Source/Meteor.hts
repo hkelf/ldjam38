@@ -2,40 +2,55 @@ Meteor = #;
 
 Meteor.TYPE = #{
     TERRAFORMATION: #{
-        MOUNTAIN,
-        TNT,
-        NEUTRAL
+        MOUNTAIN: 0,
+        TNT: 1,
+        NEUTRAL: 2
     },
     EFFECT: #{
-        ICE,
-        LIFE_ANIMAL,
-        LIFE_MUSHROOM,
-        LIFE_VEGETAL,
-        ATMOSPHERE_OXYGEN,
-        ATMOSPHERE_CO2,
-        ATMOSPHERE_SPORES //lol
+        ICE: 0,
+        LIFE_ANIMAL: 1,
+        LIFE_MUSHROOM: 2,
+        LIFE_VEGETAL: 3,
+        ATMOSPHERE_OXYGEN: 4,
+        ATMOSPHERE_CO2: 5,
+        ATMOSPHERE_SPORES: 6 //lol
     }
 }
 
-Meteor.SPEED = 3;
+Meteor.SPEED = 50;
+Meteor.MIN_RADIUS = 8;
+Meteor.MAX_RADIUS = 12;
 Meteor.RADIUS = 10;
 Meteor.ORIGIN_RADIUS = 830;
+Meteor.NB_OF_VERTICES = 12;
 
 let Get_mesh = function(
     type_terraformation,
     type_effect
 ) 
 {
-	let mesh = love.graphics.newMesh(6, 'fan', 'dynamic');
+	let mesh = love.graphics.newMesh(Meteor.NB_OF_VERTICES, 'fan', 'dynamic');
 
-	for(let i = 1 ... 6)
+    let color = #{};
+
+    if (type_terraformation == Meteor.TYPE.TERRAFORMATION.MOUNTAIN) { 
+        color.r = 175; color.g = 121; color.b = 149;
+    };
+    if (type_terraformation == Meteor.TYPE.TERRAFORMATION.TNT) { 
+        color.r = 255; color.g = 93; color.b = 0;
+    };
+    if (type_terraformation == Meteor.TYPE.TERRAFORMATION.NEUTRAL) { 
+        color.r = 200; color.g = 200; color.b = 200;
+    };
+
+	for(let i = 1 ... Meteor.NB_OF_VERTICES)
 	{
-		let h = math.rad(i * (360 / 6));
-
+        let radius = Meteor.MIN_RADIUS + (Meteor.MAX_RADIUS - Meteor.MIN_RADIUS) * math.random();
+		let h = math.rad(i * (360 / Meteor.NB_OF_VERTICES));
 		mesh->setVertex(i,
-			math.cos(h) * Meteor.RADIUS,
-			math.sin(h) * Meteor.RADIUS,
-			0, 0, 255, 0, 0, 255
+			math.cos(h) * radius,
+			math.sin(h) * radius,
+			0, 0, color.r, color.g, color.b, 255
 		);
 	}
 
@@ -59,7 +74,7 @@ Meteor.New = function(
         type_terraformation: type_terraformation,
         type_effect: type_effect,
         spawn: spawn,
-        position: #{ 
+        position: #{
             x: math.cos(origin) * Meteor.ORIGIN_RADIUS + Constants.CENTER.x, 
             y: math.sin(origin) * Meteor.ORIGIN_RADIUS + Constants.CENTER.y 
         },
@@ -78,8 +93,10 @@ Meteor.Draw = function(meteor)
     );
 }
 
-Meteor.Update = function(meteor) 
+Meteor.Update = function(meteor, dt) 
 {
-    meteor.position.x -= math.cos(meteor.origin) * Meteor.SPEED;   
-    meteor.position.y -= math.sin(meteor.origin) * Meteor.SPEED;   
+    meteor.position.x -= math.cos(meteor.origin) * Meteor.SPEED * dt;   
+    meteor.position.y -= math.sin(meteor.origin) * Meteor.SPEED * dt;   
+    // meteor.position.x -= math.cos(meteor.origin) * Meteor.SPEED * 1;   
+    // meteor.position.y -= math.sin(meteor.origin) * Meteor.SPEED * 1;   
 }

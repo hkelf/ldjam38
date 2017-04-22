@@ -1,0 +1,61 @@
+require('meteor');
+
+MeteorsManager = #;
+
+let TIMER_INITIAL_STATE = 7;
+let MAX_METEORS = 3;
+let timer = TIMER_INITIAL_STATE;
+
+let meteors = #{};
+
+MeteorsManager.Update = function(dt) {
+    for (let i, meteor in ##(meteors)) {
+        Meteor.Update(meteor, dt);
+    }
+
+    timer -= dt;
+
+    if (timer < 0) {
+        timer = TIMER_INITIAL_STATE;
+        Spawn_meteors();
+    }
+}
+
+MeteorsManager.Draw = function() {
+    for (let i, meteor in ##(meteors)) {
+        Meteor.Draw(meteor);
+    }
+}
+
+function Spawn_meteors() {
+    let nb_of_meteors_togenerate = math.random(MAX_METEORS);
+    
+    for(let i = 1 ... nb_of_meteors_togenerate) {
+        table.insert(
+            meteors,
+            Get_Random_Meteor()
+        );
+    }
+}
+
+function Get_Random_Meteor() {
+    let terra_index = math.random(3);
+    let effect_index = math.random(7);
+    let origin = math.random() * math.pi * 2;
+
+    let terra, effect;
+
+    if (terra_index == 1) { terra = Meteor.TYPE.TERRAFORMATION.MOUNTAIN; }
+    if (terra_index == 2) { terra = Meteor.TYPE.TERRAFORMATION.TNT; }
+    if (terra_index == 3) { terra = Meteor.TYPE.TERRAFORMATION.NEUTRAL; }
+
+    if (effect_index == 1) { effect = Meteor.TYPE.EFFECT.ICE; }
+    if (effect_index == 2) { effect = Meteor.TYPE.EFFECT.LIFE_ANIMAL; }
+    if (effect_index == 3) { effect = Meteor.TYPE.EFFECT.LIFE_MUSHROOM; }
+    if (effect_index == 4) { effect = Meteor.TYPE.EFFECT.LIFE_VEGETAL; }
+    if (effect_index == 5) { effect = Meteor.TYPE.EFFECT.ATMOSPHERE_OXYGEN; }
+    if (effect_index == 6) { effect = Meteor.TYPE.EFFECT.ATMOSPHERE_CO2; }
+    if (effect_index == 7) { effect = Meteor.TYPE.EFFECT.ATMOSPHERE_SPORES; }
+
+    return Meteor.New(terra, effect, origin);
+}
