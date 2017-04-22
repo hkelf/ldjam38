@@ -1,14 +1,16 @@
 
-require('constants');
-
-//
-
 Planet = #;
 
 //
 
+Planet.CORE_SIDES = 32;
+Planet.CORE_RADIUS = 50;
+
+Planet.MANTLE_SIDES = 32;
+Planet.MANTLE_RADIUS = 100;
+
 Planet.CRUST_SIDES = 64;
-Planet.CRUST_RADIUS = 100;
+Planet.CRUST_RADIUS = 150;
 
 Planet.IMPACT_HIGH = 0.9;
 Planet.IMPACT_MED = 0.7;
@@ -65,7 +67,15 @@ Planet.CreateCrust = function(planet)
 
 Planet.Draw = function(planet)
 {
-	love.graphics.draw(planet.crust_mesh,Constants.CENTER.x,Constants.CENTER.y);
+	love.graphics.draw(planet.crust_mesh, 0, 0);
+
+	love.graphics.setColor(81, 63, 39, 255);
+	love.graphics.circle('fill', 0, 0, Planet.MANTLE_RADIUS, Planet.MANTLE_SIDES);
+
+	love.graphics.setColor(198, 73, 27, 255);
+	love.graphics.circle('fill', 0, 0, Planet.CORE_RADIUS, Planet.CORE_SIDES);
+
+	love.graphics.setColor(255, 255, 255, 255);
 };
 
 //
