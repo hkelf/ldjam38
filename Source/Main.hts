@@ -1,3 +1,4 @@
+require('Constants.hts');
 
 love.load = function()
 {

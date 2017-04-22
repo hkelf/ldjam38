@@ -1,0 +1,3 @@
+Constants = #{
+    CENTER: #{640, 360}
+}
