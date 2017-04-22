@@ -1,20 +1,25 @@
-require('Constants.hts');
+require('meteorsmanager');
+require('planet');
+
+let planet;
 
 love.load = function()
 {
-
+    planet = Planet.New();
 };
 
 //
 
 love.update = function(dt)
 {
-
+    MeteorsManager.Update(dt);
 };
 
 //
 
 love.draw = function()
 {
-	
+    love.graphics.translate(1280 / 2, 720 / 2);
+    Planet.Draw(planet);
+    MeteorsManager.Draw();
 };

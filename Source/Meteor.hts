@@ -75,8 +75,8 @@ Meteor.New = function(
         type_effect: type_effect,
         spawn: spawn,
         position: #{
-            x: math.cos(origin) * Meteor.ORIGIN_RADIUS + Constants.CENTER.x, 
-            y: math.sin(origin) * Meteor.ORIGIN_RADIUS + Constants.CENTER.y 
+            x: math.cos(origin) * Meteor.ORIGIN_RADIUS, 
+            y: math.sin(origin) * Meteor.ORIGIN_RADIUS 
         },
         origin: origin,
         draw_model: draw_model
