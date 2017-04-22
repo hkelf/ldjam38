@@ -1,0 +1,85 @@
+Meteor = #;
+
+Meteor.TYPE = #{
+    TERRAFORMATION: #{
+        MOUNTAIN,
+        TNT,
+        NEUTRAL
+    },
+    EFFECT: #{
+        ICE,
+        LIFE_ANIMAL,
+        LIFE_MUSHROOM,
+        LIFE_VEGETAL,
+        ATMOSPHERE_OXYGEN,
+        ATMOSPHERE_CO2,
+        ATMOSPHERE_SPORES //lol
+    }
+}
+
+Meteor.SPEED = 3;
+Meteor.RADIUS = 10;
+Meteor.ORIGIN_RADIUS = 830;
+
+let Get_mesh = function(
+    type_terraformation,
+    type_effect
+) 
+{
+	let mesh = love.graphics.newMesh(6, 'fan', 'dynamic');
+
+	for(let i = 1 ... 6)
+	{
+		let h = math.rad(i * (360 / 6));
+
+		mesh->setVertex(i,
+			math.cos(h) * Meteor.RADIUS,
+			math.sin(h) * Meteor.RADIUS,
+			0, 0, 255, 0, 0, 255
+		);
+	}
+
+// setVertex
+
+    return mesh;
+}
+
+Meteor.New = function(
+    type_terraformation, 
+    type_effect,
+    origin
+) 
+{
+    let draw_model = Get_mesh(
+        type_terraformation,
+        type_effect
+    );
+
+    return #{
+        type_terraformation: type_terraformation,
+        type_effect: type_effect,
+        spawn: spawn,
+        position: #{ 
+            x: math.cos(origin) * Meteor.ORIGIN_RADIUS + Constants.CENTER.x, 
+            y: math.sin(origin) * Meteor.ORIGIN_RADIUS + Constants.CENTER.y 
+        },
+        origin: origin,
+        draw_model: draw_model
+    };
+}
+
+Meteor.Draw = function(meteor) 
+{
+    love.graphics.draw(
+        meteor.draw_model,
+        meteor.position.x,
+        meteor.position.y,
+        0
+    );
+}
+
+Meteor.Update = function(meteor) 
+{
+    meteor.position.x -= math.cos(meteor.origin) * Meteor.SPEED;   
+    meteor.position.y -= math.sin(meteor.origin) * Meteor.SPEED;   
+}
