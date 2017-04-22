@@ -16,4 +16,4 @@ love.update = function(dt)
 love.draw = function()
 {
 	
-}
+};

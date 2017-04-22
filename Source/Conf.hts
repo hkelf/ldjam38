@@ -1,0 +1,7 @@
+
+love.conf = function(t)
+{
+	t.window.title = 'Insert Planet Name';
+	t.window.width = 1280;
+	t.window.height = 720;
+};
