@@ -13,6 +13,7 @@ love.load = function()
 love.update = function(dt)
 {
     MeteorsManager.Update(dt);
+    MeteorsManager.Resolve_Planet_Colisions(planet);
 };
 
 //

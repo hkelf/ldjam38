@@ -23,6 +23,7 @@ Meteor.MAX_RADIUS = 12;
 Meteor.RADIUS = 10;
 Meteor.ORIGIN_RADIUS = 830;
 Meteor.NB_OF_VERTICES = 12;
+Meteor.DEFAULT_IMPACT_FORCE = 20;
 
 let Get_mesh = function(
     type_terraformation,
@@ -116,4 +117,9 @@ Meteor.Update = function(meteor, dt)
 
     // meteor.position.x -= math.cos(meteor.origin) * Meteor.SPEED * 1;   
     // meteor.position.y -= math.sin(meteor.origin) * Meteor.SPEED * 1;   
+}
+
+Meteor.Delete = function(meteor)
+{
+    
 }

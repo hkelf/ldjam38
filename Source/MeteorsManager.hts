@@ -6,10 +6,10 @@ let TIMER_INITIAL_STATE = 10;
 let MAX_METEORS = 3;
 let timer = TIMER_INITIAL_STATE;
 
-let meteors = #{};
+let alive_meteors = #{};
 
 MeteorsManager.Update = function(dt) {
-    for (let i, meteor in ##(meteors)) {
+    for (let i, meteor in ##(alive_meteors)) {
         Meteor.Update(meteor, dt);
     }
 
@@ -22,9 +22,27 @@ MeteorsManager.Update = function(dt) {
 }
 
 MeteorsManager.Draw = function() {
-    for (let i, meteor in ##(meteors)) {
+    for (let i, meteor in ##(alive_meteors)) {
         Meteor.Draw(meteor);
     }
+}
+
+MeteorsManager.Resolve_Planet_Colisions = function(planet) {
+	for(let i, meteor in ##(alive_meteors))
+	{
+        let collides, index = Planet.Collides(planet, meteor);
+
+        if (collides) {
+            if (meteor.type_terraformation == Meteor.TYPE.TERRAFORMATION.MOUNTAIN) {
+                Planet.Impact(planet, i, Meteor.DEFAULT_IMPACT_FORCE);
+            }
+            if (meteor.type_terraformation == Meteor.TYPE.TERRAFORMATION.TNT) {
+                Planet.Impact(planet, i, -Meteor.DEFAULT_IMPACT_FORCE);
+            }
+            // Meteor.Delete(meteor);
+            table.remove(alive_meteors, i);
+        }
+	}
 }
 
 function Spawn_meteors() {
@@ -32,7 +50,7 @@ function Spawn_meteors() {
     
     for(let i = 1 ... nb_of_meteors_togenerate) {
         table.insert(
-            meteors,
+            alive_meteors,
             Get_Random_Meteor()
         );
     }
