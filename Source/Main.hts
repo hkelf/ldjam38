@@ -1,3 +1,4 @@
+require('utils');
 require('meteorsmanager');
 require('planet');
 
@@ -12,8 +13,9 @@ love.load = function()
 
 love.update = function(dt)
 {
+    Planet.Update(planet, dt);
     MeteorsManager.Update(dt);
-    MeteorsManager.Resolve_Planet_Colisions(planet);
+    MeteorsManager.Resolve_Planet_Collisions(planet);
 };
 
 //

@@ -1,0 +1,19 @@
+table.clone = function (orig) {
+    let clone = #{};
+    for(let i, val in ##(orig)) {
+		table.insert(clone, val);
+	}
+    return clone;
+}
+
+table.shuffle = function (tab) {
+    let len = table.getn(tab);
+    let r, tmp;
+
+    for(let i=1 ... len) {
+        r = math.random(i, len);
+        tmp = tab[i];
+        tab[i] = tab[r];
+        tab[r] = tmp;
+    }
+}

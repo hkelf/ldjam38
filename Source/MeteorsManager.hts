@@ -2,10 +2,56 @@ require('meteor');
 
 MeteorsManager = #;
 
-let TIMER_INITIAL_STATE = 10;
-let MAX_METEORS = 3;
-let timer = TIMER_INITIAL_STATE;
+let TIMER_INITIAL_STATE = 3;
+let MAX_SPAWN_NUMBER = 3;
+let METEORS_SPAWN_SETS = #{
+    #{
+        nb_of_spanws: 3,
+        spawn_sizes: #{1, 1, 1},
+        meteors: #{
+            #{terraformation: Meteor.TYPE.TERRAFORMATION.MOUNTAIN, effect: Meteor.TYPE.EFFECT.NEUTRAL},
+            #{terraformation: Meteor.TYPE.TERRAFORMATION.MOUNTAIN, effect: Meteor.TYPE.EFFECT.NEUTRAL},
+            #{terraformation: Meteor.TYPE.TERRAFORMATION.TNT, effect: Meteor.TYPE.EFFECT.NEUTRAL}
+        }
+    },
+    #{
+        nb_of_spanws: 3,
+        spawn_sizes: #{1, 1, 1},
+        meteors: #{
+            #{terraformation: Meteor.TYPE.TERRAFORMATION.NEUTRAL, effect: Meteor.TYPE.EFFECT.LIFE_ANIMAL},
+            #{terraformation: Meteor.TYPE.TERRAFORMATION.NEUTRAL, effect: Meteor.TYPE.EFFECT.LIFE_MUSHROOM},
+            #{terraformation: Meteor.TYPE.TERRAFORMATION.NEUTRAL, effect: Meteor.TYPE.EFFECT.LIFE_VEGETAL}
+        }
+    },
+    #{
+        nb_of_spanws: 10,
+        spawn_sizes: #{3, 2, 1, 2, 1, 1},
+        meteors: #{
+            #{terraformation: Meteor.TYPE.TERRAFORMATION.NEUTRAL, effect: Meteor.TYPE.EFFECT.LIFE_ANIMAL},
+            #{terraformation: Meteor.TYPE.TERRAFORMATION.NEUTRAL, effect: Meteor.TYPE.EFFECT.LIFE_MUSHROOM},
+            #{terraformation: Meteor.TYPE.TERRAFORMATION.NEUTRAL, effect: Meteor.TYPE.EFFECT.LIFE_VEGETAL},
+            #{terraformation: Meteor.TYPE.TERRAFORMATION.NEUTRAL, effect: Meteor.TYPE.EFFECT.LIFE_VEGETAL},
+            #{terraformation: Meteor.TYPE.TERRAFORMATION.NEUTRAL, effect: Meteor.TYPE.EFFECT.LIFE_VEGETAL},
+            #{terraformation: Meteor.TYPE.TERRAFORMATION.NEUTRAL, effect: Meteor.TYPE.EFFECT.LIFE_VEGETAL},
+            #{terraformation: Meteor.TYPE.TERRAFORMATION.NEUTRAL, effect: Meteor.TYPE.EFFECT.LIFE_VEGETAL},
+            #{terraformation: Meteor.TYPE.TERRAFORMATION.NEUTRAL, effect: Meteor.TYPE.EFFECT.LIFE_VEGETAL},
+            #{terraformation: Meteor.TYPE.TERRAFORMATION.NEUTRAL, effect: Meteor.TYPE.EFFECT.LIFE_VEGETAL},
+            #{terraformation: Meteor.TYPE.TERRAFORMATION.NEUTRAL, effect: Meteor.TYPE.EFFECT.LIFE_VEGETAL}
+        }
+    }
+}
 
+let SPAWN_RANGES = #{
+    #{from: 0, to: math.pi / 8},
+    #{from: 3 * math.pi / 4, to: 7 * math.pi / 8},
+    #{from: math.pi, to: 9 * math.pi / 8},
+    #{from: 7 * math.pi / 4, to: 15 * math.pi / 8}
+}
+
+let timer = TIMER_INITIAL_STATE;
+let current_spawn_set = 0;
+let spawn_stack = #{};
+let spawn_number_stack = #{};
 let alive_meteors = #{};
 
 MeteorsManager.Update = function(dt) {
@@ -27,53 +73,74 @@ MeteorsManager.Draw = function() {
     }
 }
 
-MeteorsManager.Resolve_Planet_Colisions = function(planet) {
+MeteorsManager.Resolve_Planet_Collisions = function(planet) {
 	for(let i, meteor in ##(alive_meteors))
 	{
         let collides, index = Planet.Collides(planet, meteor);
-
         if (collides) {
             if (meteor.type_terraformation == Meteor.TYPE.TERRAFORMATION.MOUNTAIN) {
-                Planet.Impact(planet, i, Meteor.DEFAULT_IMPACT_FORCE);
+                Planet.Impact(planet, index, Meteor.DEFAULT_IMPACT_FORCE);
             }
             if (meteor.type_terraformation == Meteor.TYPE.TERRAFORMATION.TNT) {
-                Planet.Impact(planet, i, -Meteor.DEFAULT_IMPACT_FORCE);
+                Planet.Impact(planet, index, -Meteor.DEFAULT_IMPACT_FORCE);
             }
-            // Meteor.Delete(meteor);
             table.remove(alive_meteors, i);
         }
 	}
 }
 
 function Spawn_meteors() {
-    let nb_of_meteors_togenerate = math.random(MAX_METEORS);
+    if (table.getn(spawn_stack) <= 0) {
+        let there_are_spawns_sets_left = Initiate_Stack(); 
+        if (!there_are_spawns_sets_left) {
+            return;
+        }
+    }
+
+    let nb_of_meteors_to_generate = table.remove(spawn_number_stack);
     
-    for(let i = 1 ... nb_of_meteors_togenerate) {
+    let spawn_ranges_tmp = table.clone(SPAWN_RANGES);
+    table.shuffle(spawn_ranges_tmp);
+
+    for(let i = 1 ... nb_of_meteors_to_generate) {
+        let origin = Get_Spawn(table.remove(spawn_ranges_tmp));
         table.insert(
             alive_meteors,
-            Get_Random_Meteor()
+            Get_Random_Meteor(origin)
         );
     }
 }
 
-function Get_Random_Meteor() {
-    let terra_index = math.random(3);
-    let effect_index = math.random(7);
-    let origin = math.random() * math.pi * 2;
+function Get_Random_Meteor(origin) {
+    let meteor_config = table.remove(spawn_stack);
 
-    let terra, effect;
+    return Meteor.New(
+        meteor_config.terraformation, 
+        meteor_config.effect, 
+        origin
+    );
+}
 
-    if (terra_index == 1) { terra = Meteor.TYPE.TERRAFORMATION.MOUNTAIN; }
-    if (terra_index == 2) { terra = Meteor.TYPE.TERRAFORMATION.TNT; }
-    if (terra_index == 3) { terra = Meteor.TYPE.TERRAFORMATION.NEUTRAL; }
+function Initiate_Stack() {
+    current_spawn_set ++;
 
-    if (effect_index == 1) { effect = Meteor.TYPE.EFFECT.ICE; }
-    if (effect_index == 2) { effect = Meteor.TYPE.EFFECT.LIFE_ANIMAL; }
-    if (effect_index == 3) { effect = Meteor.TYPE.EFFECT.LIFE_MUSHROOM; }
-    if (effect_index == 4) { effect = Meteor.TYPE.EFFECT.LIFE_VEGETAL; }
-    if (effect_index == 5) { effect = Meteor.TYPE.EFFECT.ATMOSPHERE_OXYGEN; }
-    if (effect_index == 6) { effect = Meteor.TYPE.EFFECT.ATMOSPHERE_CO2; }
-    if (effect_index == 7) { effect = Meteor.TYPE.EFFECT.ATMOSPHERE_SPORES; }
+    let spawn_set = METEORS_SPAWN_SETS[current_spawn_set]; 
 
-    return Meteor.New(terra, effect, origin);
+    if (spawn_set == nil) {
+        return false;
+    }
+
+    spawn_stack = table.clone(spawn_set.meteors);
+    spawn_number_stack = table.clone(spawn_set.spawn_sizes);
+    
+    table.shuffle(spawn_stack);
+    table.shuffle(spawn_number_stack);
+
+    return true;
+}
+
+function Get_Spawn(range) {
+    let diff = range.to - range.from;
+    let rnd = math.random();
+    return range.from + diff * rnd;
 }
