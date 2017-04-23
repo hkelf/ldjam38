@@ -264,9 +264,17 @@ Planet.UpdateEffect = function(planet, i, ice, life, level)
 		// TODO
 	}
 
-	Planet.SetColor(i, r, g, b);
+	Planet.SetColor(planet, i, r, g, b);
 
+	for(let j = i - 1 ... i - Planet.LOGIC_RADIUS)
+	{
+		Planet.SetColor(planet, Planet.SafeIndex(j), r, g, b);
+	}
 
+	for(let j = i + 1 ... i + Planet.LOGIC_RADIUS)
+	{
+		Planet.SetColor(planet, Planet.SafeIndex(j), r, g, b);
+	}
 };
 
 //
@@ -282,4 +290,11 @@ Planet.RaiseWaterLevel = function(planet, delta)
 	planet.water_level += delta;
 
 	if(planet.water_level < 0) { planet.water_level = 0; }
+};
+
+//
+
+Planet.SetColor = function(planet, i, r, g, b)
+{
+	planet.crust_mesh->setVertexAttribute(i, 2, r, g, b, 255);
 };
