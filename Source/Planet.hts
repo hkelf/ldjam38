@@ -126,6 +126,8 @@ Planet.Collides = function(planet, meteor)
 	if(i < 2) { i = Planet.CRUST_SIDES; }
 	else if(i > Planet.CRUST_SIDES) { i = 2; }
 
+	print(i);
+
 	let ix, iy = planet.crust_mesh->getVertexAttribute(i, 1);
 
 	x = (x * x) - (ix * ix);
@@ -153,8 +155,8 @@ Planet.Impact = function(planet, i, force)
 
 Planet.ImpactPoint = function(planet, i, force)
 {
-	if(i > Planet.CRUST_SIDES) { i -= Planet.CRUST_SIDES + 1; }
-	else if(i < 2) { i += Planet.CRUST_SIDES; }
+	if(i < 2) { i += Planet.CRUST_SIDES - 1; }
+	if(i > Planet.CRUST_SIDES) { i -= Planet.CRUST_SIDES - 1; }
 
 	let x, y = planet.crust_mesh->getVertex(i);
 	let h = math.rad(i * (360 / (Planet.CRUST_SIDES - 1)));
