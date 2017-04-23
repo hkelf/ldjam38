@@ -1,5 +1,6 @@
 
 require('meteor');
+require('constants');
 
 //
 
@@ -21,6 +22,8 @@ Planet.IMPACT_MED = 0.7;
 Planet.IMPACT_LOW = 0.3;
 
 Planet.ROTATION_SPEED = 50;
+
+Planet.COLLISION_RADIUS = Meteor.MIN_RADIUS ^ 2;
 
 //
 
@@ -130,14 +133,14 @@ Planet.Collides = function(planet, meteor)
 	x = (x * x) - (ix * ix);
 	y = (y * y) - (iy * iy);
 
-	if((x + y) > Meteor.MIN_RADIUS * Meteor.MIN_RADIUS) { return false, 0; }
+	if((x + y) > Planet.COLLISION_RADIUS) { return false, 0; }
 
 	return true, i;
 };
 
 //
 
-Planet.GetHeight = function(i)
+Planet.GetHeight = function(planet, i)
 {
 	return planet.crust_mesh->getVertexAttribute(Planet.SafeIndex(i), 2);
 };
@@ -194,4 +197,25 @@ Planet.SafeIndex = function(i)
 	if(i == 0) { i = Planet.CRUST_SIDES; }
 
 	return (i + 1);
+};
+
+//
+
+Planet.SetLife = function(planet, i, state, level)
+{
+
+};
+
+//
+
+Planet.SetIce = function(planet, i, active, level)
+{
+
+};
+
+//
+
+Planet.RaiseWaterLevel = function(planet, delta)
+{
+
 };
