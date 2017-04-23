@@ -1,0 +1,7 @@
+LIFE = #{
+    NONE: 0,
+    ANIMAL: 1,
+    VEGETAL: 2,
+    MUSHROOM: 3
+}
+NB_OF_SECTORS = 32;

@@ -1,4 +1,5 @@
 require('utils');
+require('contants');
 require('timemanager');
 require('meteorsmanager');
 require('planet');
