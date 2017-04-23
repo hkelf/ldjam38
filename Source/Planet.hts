@@ -12,7 +12,7 @@ Planet.CORE_SIDES = 32;
 Planet.CORE_RADIUS = 5;
 
 Planet.CRUST_SIDES = 64;
-Planet.CRUST_RADIUS = 15;
+Planet.CRUST_RADIUS = 150;
 
 Planet.IMPACT_HIGH = 0.9;
 Planet.IMPACT_MED = 0.7;
@@ -266,12 +266,12 @@ Planet.UpdateEffect = function(planet, i, ice, life, level)
 
 	Planet.SetColor(planet, i, r, g, b);
 
-	for(let j = i - 1 ... i - Planet.LOGIC_RADIUS)
+	for(let j = i ... i - Planet.LOGIC_RADIUS ... -1)
 	{
 		Planet.SetColor(planet, Planet.SafeIndex(j), r, g, b);
 	}
 
-	for(let j = i + 1 ... i + Planet.LOGIC_RADIUS)
+	for(let j = i ... i + Planet.LOGIC_RADIUS)
 	{
 		Planet.SetColor(planet, Planet.SafeIndex(j), r, g, b);
 	}
@@ -296,5 +296,5 @@ Planet.RaiseWaterLevel = function(planet, delta)
 
 Planet.SetColor = function(planet, i, r, g, b)
 {
-	planet.crust_mesh->setVertexAttribute(i, 2, r, g, b, 255);
+	planet.crust_mesh->setVertexAttribute(i, 3, r, g, b, 255);
 };
