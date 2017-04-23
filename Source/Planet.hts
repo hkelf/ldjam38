@@ -46,18 +46,18 @@ Planet.CreateCrust = function(planet)
 
 	table.insert(vertices, #{ 0, 0 });
 
-	for(let i = 2 ... Planet.CRUST_SIDES)
+	for(let i = 2 ... Planet.CRUST_SIDES + 1)
 	{
-		let h = math.rad(i * (360 / (Planet.CRUST_SIDES - 1)));
+		let h = math.rad(i * (360 / Planet.CRUST_SIDES));
 
 		table.insert(vertices,#{
 			math.cos(h) * Planet.CRUST_RADIUS,
 			math.sin(h) * Planet.CRUST_RADIUS,
-			0, 0, 255, 255, 255, 255
+			Planet.CRUST_RADIUS, 0, 255, 255, 255, 255
 		});
 	}
 
-	for(let i = 2 ... Planet.CRUST_SIDES - 1)
+	for(let i = 2 ... Planet.CRUST_SIDES)
 	{
 		table.insert(indices, 1);
 		table.insert(indices, i + 1);
@@ -66,7 +66,7 @@ Planet.CreateCrust = function(planet)
 
 	table.insert(indices, 1);
 	table.insert(indices, 2);
-	table.insert(indices, Planet.CRUST_SIDES);
+	table.insert(indices, Planet.CRUST_SIDES + 1);
 
 	planet.crust_mesh = love.graphics.newMesh(vertices, 'triangles', 'dynamic');
 
@@ -85,6 +85,8 @@ Planet.Update = function(planet, dt)
 	{
 		planet.rotation -= (Planet.ROTATION_SPEED * dt);
 	}
+
+	if(planet.rotation < 360) { planet.rotation += 360; }
 };
 
 //
@@ -119,14 +121,9 @@ Planet.Collides = function(planet, meteor)
 
 	let r = math.fmod(math.deg(meteor.origin) - planet.rotation, 360);
 
-	if(r < 0) { r += 360; }
+	// Contains hack for collision index shift
 
-	let i = math.floor((Planet.CRUST_SIDES * r) / 360);
-
-	if(i < 2) { i = Planet.CRUST_SIDES; }
-	else if(i > Planet.CRUST_SIDES) { i = 2; }
-
-	print(i);
+	let i = Planet.SafeIndex(math.floor((Planet.CRUST_SIDES * r) / 360) - 2);
 
 	let ix, iy = planet.crust_mesh->getVertexAttribute(i, 1);
 
@@ -136,6 +133,20 @@ Planet.Collides = function(planet, meteor)
 	if((x + y) > Meteor.MIN_RADIUS * Meteor.MIN_RADIUS) { return false, 0; }
 
 	return true, i;
+};
+
+//
+
+Planet.GetHeight = function(i)
+{
+	return planet.crust_mesh->getVertexAttribute(Planet.SafeIndex(i), 2);
+};
+
+//
+
+Planet.GetMaxHeight = function(planet)
+{
+	return planet.max_point;
 };
 
 //
@@ -155,14 +166,32 @@ Planet.Impact = function(planet, i, force)
 
 Planet.ImpactPoint = function(planet, i, force)
 {
-	if(i < 2) { i += Planet.CRUST_SIDES - 1; }
-	if(i > Planet.CRUST_SIDES) { i -= Planet.CRUST_SIDES - 1; }
+	i = Planet.SafeIndex(i);
 
 	let x, y = planet.crust_mesh->getVertex(i);
 	let h = math.rad(i * (360 / (Planet.CRUST_SIDES - 1)));
 
-	planet.crust_mesh->setVertexAttribute(i, 1,
-		x + (math.cos(h) * force),
-		y + (math.sin(h) * force)
-	);
+	x += (math.cos(h) * force);
+	y += (math.sin(h) * force);
+
+	planet.crust_mesh->setVertexAttribute(i, 1, x, y);
+
+	let dist = (x * x) + (y * y);
+
+	planet.crust_mesh->setVertexAttribute(i, 2, dist, 0);
+
+	if(dist > planet.max_point) { planet.max_point = dist; }
+};
+
+//
+
+Planet.SafeIndex = function(i)
+{
+	while(i < 0) { i += Planet.CRUST_SIDES; }
+
+	i = math.fmod(i, Planet.CRUST_SIDES);
+
+	if(i == 0) { i = Planet.CRUST_SIDES; }
+
+	return (i + 1);
 };
