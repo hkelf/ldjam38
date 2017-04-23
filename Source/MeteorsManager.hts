@@ -2,7 +2,6 @@ require('meteor');
 
 MeteorsManager = #;
 
-let TIMER_INITIAL_STATE = 3;
 let MAX_SPAWN_NUMBER = 3;
 let METEORS_SPAWN_SETS = #{
     #{
@@ -48,33 +47,33 @@ let SPAWN_RANGES = #{
     #{from: 7 * math.pi / 4, to: 15 * math.pi / 8}
 }
 
-let timer = TIMER_INITIAL_STATE;
-let current_spawn_set = 0;
-let spawn_stack = #{};
-let spawn_number_stack = #{};
-let alive_meteors = #{};
-
-MeteorsManager.Update = function(dt) {
-    for (let i, meteor in ##(alive_meteors)) {
-        Meteor.Update(meteor, dt);
-    }
-
-    timer -= dt;
-
-    if (timer < 0) {
-        timer = TIMER_INITIAL_STATE;
-        Spawn_meteors();
+MeteorsManager.New = function() {
+    return #{
+        current_spawn_set: 0,
+        spawn_stack: #{},
+        spawn_number_stack: #{},
+        alive_meteors: #{}
     }
 }
 
-MeteorsManager.Draw = function() {
-    for (let i, meteor in ##(alive_meteors)) {
+MeteorsManager.Update = function(manager, dt, spawn_meteors) {
+    for (let i, meteor in ##(manager.alive_meteors)) {
+        Meteor.Update(meteor, dt);
+    }
+
+    if (spawn_meteors) {
+        Spawn_meteors(manager);
+    }
+}
+
+MeteorsManager.Draw = function(manager) {
+    for (let i, meteor in ##(manager.alive_meteors)) {
         Meteor.Draw(meteor);
     }
 }
 
-MeteorsManager.Resolve_Planet_Collisions = function(planet) {
-	for(let i, meteor in ##(alive_meteors))
+MeteorsManager.Resolve_Planet_Collisions = function(manager, planet) {
+	for(let i, meteor in ##(manager.alive_meteors))
 	{
         let collides, index = Planet.Collides(planet, meteor);
         if (collides) {
@@ -84,20 +83,20 @@ MeteorsManager.Resolve_Planet_Collisions = function(planet) {
             if (meteor.type_terraformation == Meteor.TYPE.TERRAFORMATION.TNT) {
                 Planet.Impact(planet, index, -Meteor.DEFAULT_IMPACT_FORCE);
             }
-            table.remove(alive_meteors, i);
+            table.remove(manager.alive_meteors, i);
         }
 	}
 }
 
-function Spawn_meteors() {
-    if (table.getn(spawn_stack) <= 0) {
-        let there_are_spawns_sets_left = Initiate_Stack(); 
+function Spawn_meteors(manager) {
+    if (table.getn(manager.spawn_stack) <= 0) {
+        let there_are_spawns_sets_left = Initiate_Stack(manager); 
         if (!there_are_spawns_sets_left) {
             return;
         }
     }
 
-    let nb_of_meteors_to_generate = table.remove(spawn_number_stack);
+    let nb_of_meteors_to_generate = table.remove(manager.spawn_number_stack);
     
     let spawn_ranges_tmp = table.clone(SPAWN_RANGES);
     table.shuffle(spawn_ranges_tmp);
@@ -105,14 +104,14 @@ function Spawn_meteors() {
     for(let i = 1 ... nb_of_meteors_to_generate) {
         let origin = Get_Spawn(table.remove(spawn_ranges_tmp));
         table.insert(
-            alive_meteors,
-            Get_Random_Meteor(origin)
+            manager.alive_meteors,
+            Get_Random_Meteor(manager, origin)
         );
     }
 }
 
-function Get_Random_Meteor(origin) {
-    let meteor_config = table.remove(spawn_stack);
+function Get_Random_Meteor(manager, origin) {
+    let meteor_config = table.remove(manager.spawn_stack);
 
     return Meteor.New(
         meteor_config.terraformation, 
@@ -121,20 +120,20 @@ function Get_Random_Meteor(origin) {
     );
 }
 
-function Initiate_Stack() {
-    current_spawn_set ++;
+function Initiate_Stack(manager) {
+    manager.current_spawn_set ++;
 
-    let spawn_set = METEORS_SPAWN_SETS[current_spawn_set]; 
+    let spawn_set = METEORS_SPAWN_SETS[manager.current_spawn_set]; 
 
     if (spawn_set == nil) {
         return false;
     }
 
-    spawn_stack = table.clone(spawn_set.meteors);
-    spawn_number_stack = table.clone(spawn_set.spawn_sizes);
+    manager.spawn_stack = table.clone(spawn_set.meteors);
+    manager.spawn_number_stack = table.clone(spawn_set.spawn_sizes);
     
-    table.shuffle(spawn_stack);
-    table.shuffle(spawn_number_stack);
+    table.shuffle(manager.spawn_stack);
+    table.shuffle(manager.spawn_number_stack);
 
     return true;
 }

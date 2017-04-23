@@ -118,8 +118,3 @@ Meteor.Update = function(meteor, dt)
     // meteor.position.x -= math.cos(meteor.origin) * Meteor.SPEED * 1;   
     // meteor.position.y -= math.sin(meteor.origin) * Meteor.SPEED * 1;   
 }
-
-Meteor.Delete = function(meteor)
-{
-
-}
