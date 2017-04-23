@@ -34,10 +34,10 @@ MeteorsManager.Resolve_Planet_Colisions = function(planet) {
 
         if (collides) {
             if (meteor.type_terraformation == Meteor.TYPE.TERRAFORMATION.MOUNTAIN) {
-                Planet.Impact(planet, i, Meteor.DEFAULT_IMPACT_FORCE);
+                Planet.Impact(planet, index, Meteor.DEFAULT_IMPACT_FORCE);
             }
             if (meteor.type_terraformation == Meteor.TYPE.TERRAFORMATION.TNT) {
-                Planet.Impact(planet, i, -Meteor.DEFAULT_IMPACT_FORCE);
+                Planet.Impact(planet, index, -Meteor.DEFAULT_IMPACT_FORCE);
             }
             // Meteor.Delete(meteor);
             table.remove(alive_meteors, i);
