@@ -53,7 +53,7 @@ Planet.CreateCrust = function(planet)
 		table.insert(vertices,#{
 			math.cos(h) * Planet.CRUST_RADIUS,
 			math.sin(h) * Planet.CRUST_RADIUS,
-			0, 0, 255, 255, 255, 255
+			Planet.CRUST_RADIUS, 0, 255, 255, 255, 255
 		});
 	}
 
@@ -121,7 +121,7 @@ Planet.Collides = function(planet, meteor)
 
 	let r = math.fmod(math.deg(meteor.origin) - planet.rotation, 360);
 
-	// Subtract is a hack for collision index shift
+	// Contains hack for collision index shift
 
 	let i = Planet.SafeIndex(math.floor((Planet.CRUST_SIDES * r) / 360) - 2);
 
@@ -133,6 +133,20 @@ Planet.Collides = function(planet, meteor)
 	if((x + y) > Meteor.MIN_RADIUS * Meteor.MIN_RADIUS) { return false, 0; }
 
 	return true, i;
+};
+
+//
+
+Planet.GetHeight = function(i)
+{
+	return planet.crust_mesh->getVertexAttribute(Planet.SafeIndex(i), 2);
+};
+
+//
+
+Planet.GetMaxHeight = function(planet)
+{
+	return planet.max_point;
 };
 
 //
@@ -157,10 +171,16 @@ Planet.ImpactPoint = function(planet, i, force)
 	let x, y = planet.crust_mesh->getVertex(i);
 	let h = math.rad(i * (360 / (Planet.CRUST_SIDES - 1)));
 
-	planet.crust_mesh->setVertexAttribute(i, 1,
-		x + (math.cos(h) * force),
-		y + (math.sin(h) * force)
-	);
+	x += (math.cos(h) * force);
+	y += (math.sin(h) * force);
+
+	planet.crust_mesh->setVertexAttribute(i, 1, x, y);
+
+	let dist = (x * x) + (y * y);
+
+	planet.crust_mesh->setVertexAttribute(i, 2, dist, 0);
+
+	if(dist > planet.max_point) { planet.max_point = dist; }
 };
 
 //
