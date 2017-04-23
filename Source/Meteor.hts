@@ -7,17 +7,19 @@ Meteor.TYPE = #{
         NEUTRAL: 2
     },
     EFFECT: #{
-        ICE: 0,
-        LIFE_ANIMAL: 1,
-        LIFE_MUSHROOM: 2,
-        LIFE_VEGETAL: 3,
-        ATMOSPHERE_OXYGEN: 4,
-        ATMOSPHERE_CO2: 5,
-        ATMOSPHERE_SPORES: 6 //lol
+        NEUTRAL: 0,
+        ICE: 1,
+        LIFE_ANIMAL: 2,
+        LIFE_MUSHROOM: 3,
+        LIFE_VEGETAL: 4,
+        ATMOSPHERE_OXYGEN: 5,
+        ATMOSPHERE_CO2: 6,
+        ATMOSPHERE_SPORES: 7, //lol
+
     }
 }
 
-Meteor.SPEED = 50;
+Meteor.SPEED = 150;
 Meteor.MIN_RADIUS = 8;
 Meteor.MAX_RADIUS = 12;
 Meteor.RADIUS = 10;
@@ -74,8 +76,6 @@ Meteor.New = function(
     let rotation_orientation;
     let rnd = math.random(2);
 
-    print(rnd);
-
     if (rnd == 1) {
         rotation_orientation = 1;
     }
@@ -117,9 +117,4 @@ Meteor.Update = function(meteor, dt)
 
     // meteor.position.x -= math.cos(meteor.origin) * Meteor.SPEED * 1;   
     // meteor.position.y -= math.sin(meteor.origin) * Meteor.SPEED * 1;   
-}
-
-Meteor.Delete = function(meteor)
-{
-    
 }
