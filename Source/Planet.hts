@@ -9,13 +9,10 @@ Planet = #;
 //
 
 Planet.CORE_SIDES = 32;
-Planet.CORE_RADIUS = 50;
-
-Planet.MANTLE_SIDES = 32;
-Planet.MANTLE_RADIUS = 100;
+Planet.CORE_RADIUS = 5;
 
 Planet.CRUST_SIDES = 64;
-Planet.CRUST_RADIUS = 150;
+Planet.CRUST_RADIUS = 15;
 
 Planet.IMPACT_HIGH = 0.9;
 Planet.IMPACT_MED = 0.7;
@@ -24,6 +21,26 @@ Planet.IMPACT_LOW = 0.3;
 Planet.ROTATION_SPEED = 50;
 
 Planet.COLLISION_RADIUS = Meteor.MIN_RADIUS ^ 2;
+
+Planet.LOGIC_RADIUS = (Planet.CRUST_SIDES / NB_OF_SECTORS) * 0.5;
+
+Planet.WATER_SIDES = 32;
+
+Planet.CRUST_R = 114;
+Planet.CRUST_G = 84;
+Planet.CRUST_B = 71;
+
+Planet.ANIMAL_R = 60;
+Planet.ANIMAL_G = 120;
+Planet.ANIMAL_B = 163;
+
+Planet.VEGETAL_R = 71;
+Planet.VEGETAL_G = 145;
+Planet.VEGETAL_B = 73;
+
+Planet.SHROOM_R = 154;
+Planet.SHROOM_G = 97;
+Planet.SHROOM_B = 204;
 
 //
 
@@ -35,7 +52,11 @@ Planet.New = function()
 
 	planet.rotation = 0;
 
+	planet.min_point = Planet.CRUST_RADIUS;
 	planet.max_point = Planet.CRUST_RADIUS;
+
+	planet.water_level = 0;
+	planet.has_water = false;
 
 	return planet;
 };
@@ -47,7 +68,9 @@ Planet.CreateCrust = function(planet)
 	let vertices = #;
 	let indices = #;
 
-	table.insert(vertices, #{ 0, 0 });
+	table.insert(vertices, #{ 0, 0, 0, 0,
+		Planet.CRUST_R, Planet.CRUST_G, Planet.CRUST_B, 255
+	});
 
 	for(let i = 2 ... Planet.CRUST_SIDES + 1)
 	{
@@ -56,7 +79,8 @@ Planet.CreateCrust = function(planet)
 		table.insert(vertices,#{
 			math.cos(h) * Planet.CRUST_RADIUS,
 			math.sin(h) * Planet.CRUST_RADIUS,
-			Planet.CRUST_RADIUS, 0, 255, 255, 255, 255
+			Planet.CRUST_RADIUS, 0,
+			Planet.CRUST_R, Planet.CRUST_G, Planet.CRUST_B, 255
 		});
 	}
 
@@ -99,12 +123,13 @@ Planet.Draw = function(planet)
 	love.graphics.push();
 	love.graphics.rotate(math.rad(planet.rotation));
 
+	love.graphics.setColor(75, 175, 209, 255);
+	love.graphics.circle('fill', 0, 0, planet.water_level, Planet.WATER_SIDES);
+
+	love.graphics.setColor(255, 255, 255, 255);
 	love.graphics.draw(planet.crust_mesh, 0, 0);
 
-	love.graphics.setColor(81, 63, 39, 255);
-	love.graphics.circle('fill', 0, 0, Planet.MANTLE_RADIUS, Planet.MANTLE_SIDES);
-
-	love.graphics.setColor(198, 73, 27, 255);
+	love.graphics.setColor(206, 184, 177, 255);
 	love.graphics.circle('fill', 0, 0, Planet.CORE_RADIUS, Planet.CORE_SIDES);
 
 	love.graphics.setColor(255, 255, 255, 255);
@@ -147,6 +172,13 @@ Planet.GetHeight = function(planet, i)
 
 //
 
+Planet.GetMinHeight = function(planet)
+{
+	return planet.min_point;
+};
+
+//
+
 Planet.GetMaxHeight = function(planet)
 {
 	return planet.max_point;
@@ -184,6 +216,7 @@ Planet.ImpactPoint = function(planet, i, force)
 	planet.crust_mesh->setVertexAttribute(i, 2, dist, 0);
 
 	if(dist > planet.max_point) { planet.max_point = dist; }
+	if(dist < planet.min_point) { planet.min_point = dist; }
 };
 
 //
@@ -201,15 +234,38 @@ Planet.SafeIndex = function(i)
 
 //
 
-Planet.SetLife = function(planet, i, state, level)
+Planet.UpdateEffect = function(planet, i, ice, life, level)
 {
+	let r = Planet.CRUST_R;
+	let g = Planet.CRUST_G;
+	let b = Planet.CRUST_B;
 
-};
+	if(life == LIFE.ANIMAL)
+	{
+		r = Planet.ANIMAL_R;
+		g = Planet.ANIMAL_G;
+		b = Planet.ANIMAL_B;
+	}
+	else if(life == LIFE.VEGETAL)
+	{
+		r = Planet.VEGETAL_R;
+		g = Planet.VEGETAL_G;
+		b = Planet.VEGETAL_B;
+	}
+	else if(life == LIFE.MUSHROOM)
+	{
+		r = Planet.SHROOM_R;
+		g = Planet.SHROOM_G;
+		b = Planet.SHROOM_B;
+	}
 
-//
+	if(ice > 0)
+	{
+		// TODO
+	}
 
-Planet.SetIce = function(planet, i, active, level)
-{
+	Planet.SetColor(i, r, g, b);
+
 
 };
 
@@ -217,5 +273,13 @@ Planet.SetIce = function(planet, i, active, level)
 
 Planet.RaiseWaterLevel = function(planet, delta)
 {
+	if(!planet.has_water)
+	{
+		planet.water_level = planet.min_point;
+		planet.has_water = true;
+	}
 
+	planet.water_level += delta;
+
+	if(planet.water_level < 0) { planet.water_level = 0; }
 };
