@@ -1,3 +1,9 @@
+
+require('planet');
+require('constants');
+
+//
+
 table.clone = function (orig) {
     let clone = #{};
     for(let i, val in ##(orig)) {
@@ -17,3 +23,21 @@ table.shuffle = function (tab) {
         tab[r] = tmp;
     }
 }
+
+//
+
+Utils = #;
+
+//
+
+Utils.FromPlanetIndex = function(i)
+{
+	return ((i * NB_OF_SECTORS) / Planet.CRUST_SIDES);
+};
+
+//
+
+Utils.FromLogicIndex = function(i)
+{
+	return ((i * Planet.CRUST_SIDES) / NB_OF_SECTORS);
+};
