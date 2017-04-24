@@ -1,13 +1,17 @@
+let utf8 = require("utf8");
+
 require('utils');
 require('constants');
-require('timemanager');
+require('gamemanager');
 require('meteorsmanager');
 require('planet');
 require('planetstatemanager');
 
 let background = null;
 
-let planet, time_manager, meteors_manager, planet_state_manager;
+let planet, game_manager, meteors_manager, planet_state_manager,
+    spawn_meteors, update_planet, game_state;
+let title;
 
 love.load = function()
 {
@@ -15,36 +19,111 @@ love.load = function()
 
     meteors_manager = MeteorsManager.New();
     planet = Planet.New();
-    time_manager = TimeManager.New();
+    game_manager = GameManager.New();
     planet_state_manager = PlanetStateManager.New(planet);
+
+    title = #{
+        value: DEFAULT_TITLE, 
+        text: love.graphics.newText(love.graphics.newFont("Assets/Arcon-Regular.otf", TITLE_INITIAL_SIZE))
+    };
+    //title.text = love.graphics.newText(love.graphics.newFont("Assets/Arcon-Regular.otf", 40));
+    title.text:add(#{
+        TEXT_COLOR.TITLE,
+        title.value .. "_"
+    });
 };
 
 //
 
 love.update = function(dt)
 {
-    let spawn_meteors, update_planet, game_time_out = TimeManager.UpdateAndGetState(time_manager, dt);
+    spawn_meteors, update_planet, game_state = GameManager.UpdateAndGetState(game_manager, dt);
     
-    Planet.Update(planet, dt);
-    
-    MeteorsManager.Update(meteors_manager, dt, spawn_meteors);
-
-    if (update_planet) {
-        PlanetStateManager.Update(planet_state_manager);
+    if (game_state == GameManager.STATE.TITLE) {
+        love.keyboard.setKeyRepeat(true);
+    } 
+    else {
+        love.keyboard.setKeyRepeat(false);
     }
 
-    if (game_time_out) {
+    if (game_state == GameManager.STATE.COMMANDS_INFO) {
+        
+    }
+    
+    if (game_state == GameManager.STATE.GAME) {
+        Planet.Update(planet, dt);
 
+        MeteorsManager.Update(meteors_manager, dt, spawn_meteors);
+
+        if (update_planet) {
+            PlanetStateManager.Update(planet_state_manager);
+        }
+
+        MeteorsManager.Resolve_Planet_Collisions(meteors_manager, planet_state_manager);
     }
 
-    MeteorsManager.Resolve_Planet_Collisions(meteors_manager, planet_state_manager);
+    if (game_state == GameManager.STATE.STATS_MODE) {
+
+    }
+    
+    if (game_state == GameManager.STATE.GAME_OVER) {
+
+    }
 };
+
+//
+
+love.textinput = function(text) {
+    if (game_state == GameManager.STATE.TITLE) {
+        title.value = title.value .. text;
+        title.text:set(#{
+            TEXT_COLOR.TITLE,
+            title.value .. "_"
+        });
+    }
+}
+
+//
+
+love.keypressed = function (key){
+    if (game_state == GameManager.STATE.TITLE) {
+        if (key == "backspace") {
+            let byteoffset = utf8.offset(title.value, -1);
+    
+            if (byteoffset) {
+                title.value = string.sub(title.value, 1, byteoffset - 1);
+            }
+
+            title.text:set(#{
+                TEXT_COLOR.TITLE, 
+                title.value .. "_"
+            });
+        }
+        if (key == "return") {
+            title.text:set(#{
+                TEXT_COLOR.TITLE,
+                title.value
+            });
+            GameManager.ChangeState(game_manager, GameManager.STATE.COMMANDS_INFO);
+        }
+    }
+}
 
 //
 
 love.draw = function()
 {
 	love.graphics.draw(background);
+
+    if (game_state == GameManager.STATE.TITLE) {
+        love.graphics.draw(title.text, TITLE_INITIAL_POSITION[1], TITLE_INITIAL_POSITION[2]);    
+    }
+
+    if (game_state == GameManager.STATE.COMMANDS_INFO
+        || game_state == GameManager.STATE.GAME
+    ) {
+        love.graphics.draw(title.text, TITLE_FINAL_POSITION[1], TITLE_FINAL_POSITION[2], 0, TITLE_FINAL_SIZE_RATIO);    
+    }
 
     love.graphics.translate(1280 / 2, 720 / 2);
     Planet.Draw(planet);
