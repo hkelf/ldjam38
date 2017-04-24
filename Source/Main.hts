@@ -9,7 +9,8 @@ require('planetstatemanager');
 
 let planet, game_manager, meteors_manager, planet_state_manager,
     spawn_meteors, update_planet, game_state;
-let title;
+
+let title, explanations;
 
 love.load = function()
 {
@@ -20,12 +21,20 @@ love.load = function()
 
     title = #{
         value: DEFAULT_TITLE, 
-        text: love.graphics.newText(love.graphics.newFont("Assets/Arcon-Regular.otf", TITLE_INITIAL_SIZE))
+        text: love.graphics.newText(love.graphics.newFont(FONT_FILE, TITLE_INITIAL_SIZE))
     };
-    //title.text = love.graphics.newText(love.graphics.newFont("Assets/Arcon-Regular.otf", 40));
     title.text:add(#{
         TEXT_COLOR.TITLE,
         title.value .. "_"
+    });
+
+    explanations = #{
+        value: ROTATION_EXPLANATIONS,
+        text: love.graphics.newText(love.graphics.newFont(FONT_FILE, ROTATION_EXPLANATIONS_SIZE))
+    };
+    explanations.text:add(#{
+        TEXT_COLOR.ROTATION_EXPLANATIONS,
+        explanations.value
     });
 };
 
@@ -117,6 +126,7 @@ love.draw = function()
         || game_state == GameManager.STATE.GAME
     ) {
         love.graphics.draw(title.text, TITLE_FINAL_POSITION[1], TITLE_FINAL_POSITION[2], 0, TITLE_FINAL_SIZE_RATIO);    
+        love.graphics.draw(explanations.text, ROTATION_EXPLANATIONS_POSITION[1], ROTATION_EXPLANATIONS_POSITION[2]);    
     }
 
     love.graphics.translate(1280 / 2, 720 / 2);
