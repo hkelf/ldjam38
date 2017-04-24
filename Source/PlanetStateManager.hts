@@ -45,6 +45,7 @@ PlanetStateManager.New = function(planet) {
 }
 
 PlanetStateManager.Update = function(planet_state_manager) {
+    // Log_Sectors("", planet_state_manager);
     Update_Ice(sectors, planet_state_manager);
     Update_Population(planet_state_manager);
 }
@@ -132,6 +133,7 @@ function Apply_Conflict(planet_state_manager, conflict) {
 }
 
 function Is_Flooded(sector, water_level) {
+
     return sector.height < water_level;
 }
 
@@ -155,7 +157,7 @@ PlanetStateManager.UpdateEffect = function(
     let sector = planet_state_manager.logic_planet.sectors[index];
 
     sector.ice_level = ice_level;
-    sector.life.type = life_type;
+    sector.life.type = life_type;cd 
     sector.life.level = life_level;
 }
 
@@ -165,7 +167,6 @@ PlanetStateManager.Raise_Water_Level = function(planet_state_manager, delta)
     planet_state_manager.logic_planet.water_level += delta;
     
     for(let i, sector in ##(planet_state_manager.logic_planet.sectors)) {
-        print(sector.water_level);
         let has_been_flooded = Is_Flooded(sector, planet_state_manager.logic_planet.water_level) && !Is_Flooded(sector, planet_state_manager.logic_planet.water_level - delta);
         let has_been_dried = !Is_Flooded(sector, planet_state_manager.logic_planet.water_level) && Is_Flooded(sector, planet_state_manager.logic_planet.water_level - delta);
 
@@ -218,9 +219,13 @@ PlanetStateManager.Impact = function(planet_manager, index, force) {
 
 function Log_Sectors(title, planet_state_manager) {
     print("===" .. title .. "===")
-        print("water: " .. planet_state_manager.logic_planet.water_level);
+    print("water: " .. planet_state_manager.logic_planet.water_level);
     for(let index, sector in ##(planet_state_manager.logic_planet.sectors)) {
-        print(index .. " -> " .. "ice:" .. sector.ice_level .. " life_type:" .. sector.life.type .. " life_level:" .. sector.life.level);
+        let is_flooded = "false";
+        if (Is_Flooded(sector, planet_state_manager.logic_planet.water_level)) {
+            is_flooded = "true";
+        }
+        print(index .. " -> " .. "ice:" .. sector.ice_level .. " life_type:" .. sector.life.type .. " life_level:" .. sector.life.level .. " height:" .. sector.height .. " is_flooded:" .. is_flooded);
     }
-    print("=====================")
+    print("=====================");
 }
