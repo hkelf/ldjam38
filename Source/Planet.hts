@@ -22,25 +22,19 @@ Planet.ROTATION_SPEED = 50;
 
 Planet.COLLISION_RADIUS = Meteor.MIN_RADIUS ^ 2;
 
+Planet.LOGIC_THICKNESS = 5;
 Planet.LOGIC_RADIUS = (Planet.CRUST_SIDES / NB_OF_SECTORS) * 0.5;
 
 Planet.WATER_SIDES = 32;
 
-Planet.CRUST_R = 114;
-Planet.CRUST_G = 84;
-Planet.CRUST_B = 71;
+Planet.CORE_COLOR = #{ r: 186, g: 52, b: 72 };
+Planet.CRUST_COLOR = #{ r: 114, g: 84, b: 71 };
 
-Planet.ANIMAL_R = 60;
-Planet.ANIMAL_G = 120;
-Planet.ANIMAL_B = 163;
-
-Planet.VEGETAL_R = 71;
-Planet.VEGETAL_G = 145;
-Planet.VEGETAL_B = 73;
-
-Planet.SHROOM_R = 154;
-Planet.SHROOM_G = 97;
-Planet.SHROOM_B = 204;
+Planet.NONE_COLOR = #{ r: 175, g: 156, b: 146 };
+Planet.ANIMAL_COLOR = #{ r: 229, g: 212, b: 135 };
+Planet.VEGETAL_COLOR = #{ r: 71, g: 145, b: 73 };
+Planet.SHROOM_COLOR = #{ r: 154, g: 97, b: 204 };
+Planet.ICE_COLOR = #{ r: 198, g: 235, b: 242 };
 
 //
 
@@ -49,6 +43,7 @@ Planet.New = function()
 	let planet = #;
 
 	Planet.CreateCrust(planet);
+	Planet.CreateLogic(planet);
 
 	planet.rotation = 0;
 
@@ -69,18 +64,20 @@ Planet.CreateCrust = function(planet)
 	let indices = #;
 
 	table.insert(vertices, #{ 0, 0, 0, 0,
-		Planet.CRUST_R, Planet.CRUST_G, Planet.CRUST_B, 255
+		Planet.CRUST_COLOR.r, Planet.CRUST_COLOR.g,
+		Planet.CRUST_COLOR.b, 255
 	});
 
-	for(let i = 2 ... Planet.CRUST_SIDES + 1)
+	for(let i = 0 ... Planet.CRUST_SIDES - 1)
 	{
 		let h = math.rad(i * (360 / Planet.CRUST_SIDES));
 
-		table.insert(vertices,#{
+		table.insert(vertices, #{
 			math.cos(h) * Planet.CRUST_RADIUS,
 			math.sin(h) * Planet.CRUST_RADIUS,
 			Planet.CRUST_RADIUS, 0,
-			Planet.CRUST_R, Planet.CRUST_G, Planet.CRUST_B, 255
+			Planet.CRUST_COLOR.r, Planet.CRUST_COLOR.g,
+			Planet.CRUST_COLOR.b, 255
 		});
 	}
 
@@ -98,6 +95,32 @@ Planet.CreateCrust = function(planet)
 	planet.crust_mesh = love.graphics.newMesh(vertices, 'triangles', 'dynamic');
 
 	planet.crust_mesh->setVertexMap(indices);
+};
+
+//
+
+Planet.CreateLogic = function(planet)
+{
+	let vertices = #;
+	let indices = #;
+
+	table.insert(vertices, #{ 0, 0, 0, 0,
+		Planet.CRUST_COLOR.r, Planet.CRUST_COLOR.g,
+		Planet.CRUST_COLOR.b, 255
+	});
+
+	for(let i = 0 ... Planet.CRUST_SIDES - 1)
+	{
+		let h = math.rad(i * (360 / Planet.CRUST_SIDES));
+
+		table.insert(vertices, #{
+			math.cos(h) * Planet.CRUST_RADIUS,
+			math.sin(h) * Planet.CRUST_RADIUS,
+			Planet.CRUST_RADIUS, 0,
+			Planet.NONE_COLOR.r, Planet.NONE_COLOR.g,
+			Planet.NONE_COLOR.b, 255
+		});
+	}
 };
 
 //
@@ -151,7 +174,7 @@ Planet.Collides = function(planet, meteor)
 
 	// Contains hack for collision index shift
 
-	let i = Planet.SafeIndex(math.floor((Planet.CRUST_SIDES * r) / 360) - 2);
+	let i = Planet.SafeIndex(math.floor((Planet.CRUST_SIDES * r) / 360));
 
 	let ix, iy = planet.crust_mesh->getVertexAttribute(i, 1);
 
@@ -159,6 +182,8 @@ Planet.Collides = function(planet, meteor)
 	y = (y * y) - (iy * iy);
 
 	if((x + y) > Planet.COLLISION_RADIUS) { return false, 0; }
+
+	Planet.Impact(planet, i, meteor.force);
 
 	return true, i;
 };

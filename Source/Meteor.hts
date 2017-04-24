@@ -88,8 +88,8 @@ Meteor.New = function(
 
     let force = Meteor.DEFAULT_IMPACT_FORCE;
 
-    if (meteor.type_terraformation == Meteor.TYPE.TERRAFORMATION.MOUNTAIN) {}
-    else if (meteor.type_terraformation == Meteor.TYPE.TERRAFORMATION.TNT) {
+    if (type_terraformation == Meteor.TYPE.TERRAFORMATION.MOUNTAIN) {}
+    else if (type_terraformation == Meteor.TYPE.TERRAFORMATION.TNT) {
         force *= -1;
     }
     else {
