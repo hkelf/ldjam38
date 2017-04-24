@@ -37,6 +37,8 @@ love.load = function()
 
 love.update = function(dt)
 {
+	if(dt > 1 / 33) { dt = 0; }
+
     spawn_meteors, update_planet, game_state = GameManager.UpdateAndGetState(game_manager, dt);
     
     if (game_state == GameManager.STATE.TITLE) {
