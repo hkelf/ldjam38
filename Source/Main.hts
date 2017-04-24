@@ -7,6 +7,8 @@ require('meteorsmanager');
 require('planet');
 require('planetstatemanager');
 
+let background = null;
+
 let planet, game_manager, meteors_manager, planet_state_manager,
     spawn_meteors, update_planet, game_state;
 
@@ -14,6 +16,8 @@ let title, explanations;
 
 love.load = function()
 {
+	background = love.graphics.newImage('textures/background.png');
+
     meteors_manager = MeteorsManager.New();
     planet = Planet.New();
     game_manager = GameManager.New();
@@ -118,6 +122,8 @@ love.keypressed = function (key){
 
 love.draw = function()
 {
+	love.graphics.draw(background);
+
     if (game_state == GameManager.STATE.TITLE) {
         love.graphics.draw(title.text, TITLE_INITIAL_POSITION[1], TITLE_INITIAL_POSITION[2]);    
     }
