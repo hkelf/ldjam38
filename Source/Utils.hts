@@ -39,5 +39,5 @@ Utils.FromPlanetIndex = function(i)
 
 Utils.FromLogicIndex = function(i)
 {
-	return math.floor((i * Planet.CRUST_SIDES) / NB_OF_SECTORS) + 2;
+	return Planet.SafeIndex(math.floor((i * Planet.CRUST_SIDES) / NB_OF_SECTORS) + 2);
 };
