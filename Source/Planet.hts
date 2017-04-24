@@ -38,8 +38,6 @@ Planet.New = function()
 {
 	let planet = #;
 
-	planet.core = love.graphics.newImage('textures/core.png');
-
 	Planet.CreateCrust(planet);
 	Planet.CreateLogic(planet);
 
@@ -172,11 +170,6 @@ Planet.Draw = function(planet)
 
 	love.graphics.draw(planet.logic_mesh, 0, 0);
 	love.graphics.draw(planet.crust_mesh, 0, 0);
-
-	love.graphics.draw(planet.core,
-		planet.core->getWidth() * -0.5,
-		planet.core->getHeight() * -0.5
-	);
 
 	love.graphics.setColor(255, 255, 255, 255);
 	love.graphics.pop();
