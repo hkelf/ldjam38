@@ -86,6 +86,16 @@ Meteor.New = function(
         rotation_orientation = -1;
     }
 
+    let force = Meteor.DEFAULT_IMPACT_FORCE;
+
+    if (meteor.type_terraformation == Meteor.TYPE.TERRAFORMATION.MOUNTAIN) {}
+    else if (meteor.type_terraformation == Meteor.TYPE.TERRAFORMATION.TNT) {
+        force *= -1;
+    }
+    else {
+        force *= 0;
+    }
+
     return #{
         type_terraformation: type_terraformation,
         type_effect: type_effect,
@@ -98,7 +108,7 @@ Meteor.New = function(
         draw_model: draw_model,
         rotation: 0,
         rotation_orientation: rotation_orientation,
-        force: Meteor.DEFAULT_IMPACT_FORCE
+        force: force
     };
 }
 

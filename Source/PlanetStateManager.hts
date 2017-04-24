@@ -157,7 +157,7 @@ PlanetStateManager.UpdateEffect = function(
     let sector = planet_state_manager.logic_planet.sectors[index];
 
     sector.ice_level = ice_level;
-    sector.life.type = life_type;cd 
+    sector.life.type = life_type;
     sector.life.level = life_level;
 }
 
