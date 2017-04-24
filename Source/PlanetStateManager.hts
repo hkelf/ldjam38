@@ -210,8 +210,6 @@ function Get_Right_Sector(sectors, index) {
 }
 
 PlanetStateManager.Impact = function(planet_manager, index, force) {
-    Planet.Impact(planet_manager.draw_planet, Utils.FromLogicIndex(index), force);
-
     let sector = planet_manager.logic_planet.sectors[index];
 
     sector.height += force;

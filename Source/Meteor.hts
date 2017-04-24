@@ -97,7 +97,8 @@ Meteor.New = function(
         origin: origin,
         draw_model: draw_model,
         rotation: 0,
-        rotation_orientation: rotation_orientation 
+        rotation_orientation: rotation_orientation,
+        force: Meteor.DEFAULT_IMPACT_FORCE
     };
 }
 
