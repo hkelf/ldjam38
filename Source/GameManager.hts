@@ -50,11 +50,6 @@ GameManager.UpdateAndGetState = function(manager, dt) {
         flag_meteors = true;
     }
 
-    //TO_REMOVE
-    if (manager.game_state == GameManager.STATE.COMMANDS_INFO) {
-        manager.game_state = GameManager.STATE.GAME;
-    }
-
     // if (transition_progression <= 0) {
     //     transition_progression = 0;
     //     if (manager.game_state == GameManager.STATE.TRANSITION_TITLE_COMMANDS) {

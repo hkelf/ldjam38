@@ -25,7 +25,8 @@ love.load = function()
 
     title = #{
         value: DEFAULT_TITLE, 
-        text: love.graphics.newText(love.graphics.newFont(FONT_FILE, TITLE_INITIAL_SIZE))
+        text: love.graphics.newText(love.graphics.newFont(FONT_FILE, TITLE_INITIAL_SIZE)),
+        is_initialized: false
     };
     title.text:add(#{
         TEXT_COLOR.TITLE,
@@ -68,7 +69,7 @@ love.update = function(dt)
         }
 
         if (rotation_explanations.left_is_pressed && rotation_explanations.right_is_pressed) {
-            
+            GameManager.ChangeState(game_manager, GameManager.STATE.GAME);
         }
     }
     
@@ -97,7 +98,14 @@ love.update = function(dt)
 
 love.textinput = function(text) {
     if (game_state == GameManager.STATE.TITLE) {
-        title.value = title.value .. text;
+        let result;
+        if (!title.is_initialized) {
+            title.value = "" .. text;
+            title.is_initialized = true;
+        }
+        else {
+            title.value = title.value .. text;
+        }
         title.text:set(#{
             TEXT_COLOR.TITLE,
             title.value .. "_"
@@ -140,12 +148,14 @@ love.draw = function()
     if (game_state == GameManager.STATE.TITLE) {
         love.graphics.draw(title.text, TITLE_INITIAL_POSITION[1], TITLE_INITIAL_POSITION[2]);    
     }
+    if (game_state == GameManager.STATE.COMMANDS_INFO) {
+        love.graphics.draw(rotation_explanations.text, ROTATION_EXPLANATIONS_POSITION[1], ROTATION_EXPLANATIONS_POSITION[2]);    
+    }
 
     if (game_state == GameManager.STATE.COMMANDS_INFO
         || game_state == GameManager.STATE.GAME
     ) {
         love.graphics.draw(title.text, TITLE_FINAL_POSITION[1], TITLE_FINAL_POSITION[2], 0, TITLE_FINAL_SIZE_RATIO);    
-        love.graphics.draw(explanations.text, ROTATION_EXPLANATIONS_POSITION[1], ROTATION_EXPLANATIONS_POSITION[2]);    
     }
 
     love.graphics.translate(1280 / 2, 720 / 2);
