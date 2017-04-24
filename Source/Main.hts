@@ -12,7 +12,7 @@ let background = null;
 let planet, game_manager, meteors_manager, planet_state_manager,
     spawn_meteors, update_planet, game_state;
 
-let title, explanations;
+let title, rotation_explanations;
 
 love.load = function()
 {
@@ -32,13 +32,15 @@ love.load = function()
         title.value .. "_"
     });
 
-    explanations = #{
+    rotation_explanations = #{
         value: ROTATION_EXPLANATIONS,
-        text: love.graphics.newText(love.graphics.newFont(FONT_FILE, ROTATION_EXPLANATIONS_SIZE))
+        text: love.graphics.newText(love.graphics.newFont(FONT_FILE, ROTATION_EXPLANATIONS_SIZE)),
+        left_is_pressed: false,
+        right_is_pressed: false
     };
-    explanations.text:add(#{
+    rotation_explanations.text:add(#{
         TEXT_COLOR.ROTATION_EXPLANATIONS,
-        explanations.value
+        rotation_explanations.value
     });
 };
 
@@ -56,7 +58,16 @@ love.update = function(dt)
     }
 
     if (game_state == GameManager.STATE.COMMANDS_INFO) {
-        
+        if (love.keyboard.isDown('right')) {
+            rotation_explanations.right_is_pressed = true;
+        }
+        if (love.keyboard.isDown('left')) {
+            rotation_explanations.left_is_pressed = true;
+        }
+
+        if (rotation_explanations.left_is_pressed && rotation_explanations.right_is_pressed) {
+            
+        }
     }
     
     if (game_state == GameManager.STATE.GAME) {
