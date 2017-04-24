@@ -8,11 +8,8 @@ Planet = #;
 
 //
 
-Planet.CORE_SIDES = 32;
-Planet.CORE_RADIUS = 5;
-
 Planet.CRUST_SIDES = 64;
-Planet.CRUST_RADIUS = 75;
+Planet.CRUST_RADIUS = 150;
 
 Planet.IMPACT_HIGH = 0.9;
 Planet.IMPACT_MED = 0.7;
@@ -26,21 +23,22 @@ Planet.LOGIC_THICKNESS = 5;
 Planet.LOGIC_RADIUS = (Planet.CRUST_SIDES / NB_OF_SECTORS) * 0.5;
 
 Planet.WATER_SIDES = 32;
+Planet.WATER_COLOR = #{ r: 73, g: 135, b: 188, a: 64 };
 
-Planet.CORE_COLOR = #{ r: 186, g: 52, b: 72 };
-Planet.CRUST_COLOR = #{ r: 114, g: 84, b: 71 };
-
-Planet.NONE_COLOR = #{ r: 175, g: 156, b: 146 };
-Planet.ANIMAL_COLOR = #{ r: 229, g: 212, b: 135 };
-Planet.VEGETAL_COLOR = #{ r: 71, g: 145, b: 73 };
-Planet.SHROOM_COLOR = #{ r: 154, g: 97, b: 204 };
-Planet.ICE_COLOR = #{ r: 198, g: 235, b: 242 };
+Planet.CRUST_COLOR = #{ r: 183, g: 126, b: 98 };
+Planet.NONE_COLOR = #{ r: 144, g: 99, b: 77 };
+Planet.ANIMAL_COLOR = #{ r: 249, g: 144, b: 230 };
+Planet.VEGETAL_COLOR = #{ r: 155, g: 194, b: 114 };
+Planet.SHROOM_COLOR = #{ r: 245, g: 175, b: 52 };
+Planet.ICE_COLOR = #{ r: 156, g: 201, b: 214 };
 
 //
 
 Planet.New = function()
 {
 	let planet = #;
+
+	planet.core = love.graphics.newImage('textures/core.png');
 
 	Planet.CreateCrust(planet);
 	Planet.CreateLogic(planet);
@@ -104,9 +102,11 @@ Planet.CreateLogic = function(planet)
 	let vertices = #;
 	let indices = #;
 
+	let radius = Planet.CRUST_RADIUS + Planet.LOGIC_THICKNESS;
+
 	table.insert(vertices, #{ 0, 0, 0, 0,
-		Planet.CRUST_COLOR.r, Planet.CRUST_COLOR.g,
-		Planet.CRUST_COLOR.b, 255
+		Planet.NONE_COLOR.r, Planet.NONE_COLOR.g,
+		Planet.NONE_COLOR.b, 255
 	});
 
 	for(let i = 0 ... Planet.CRUST_SIDES - 1)
@@ -114,13 +114,28 @@ Planet.CreateLogic = function(planet)
 		let h = math.rad(i * (360 / Planet.CRUST_SIDES));
 
 		table.insert(vertices, #{
-			math.cos(h) * Planet.CRUST_RADIUS,
-			math.sin(h) * Planet.CRUST_RADIUS,
-			Planet.CRUST_RADIUS, 0,
+			math.cos(h) * radius,
+			math.sin(h) * radius,
+			0, 0,
 			Planet.NONE_COLOR.r, Planet.NONE_COLOR.g,
 			Planet.NONE_COLOR.b, 255
 		});
 	}
+
+	for(let i = 2 ... Planet.CRUST_SIDES)
+	{
+		table.insert(indices, 1);
+		table.insert(indices, i + 1);
+		table.insert(indices, i);
+	}
+
+	table.insert(indices, 1);
+	table.insert(indices, 2);
+	table.insert(indices, Planet.CRUST_SIDES + 1);
+
+	planet.logic_mesh = love.graphics.newMesh(vertices, 'triangles', 'dynamic');
+
+	planet.logic_mesh->setVertexMap(indices);
 };
 
 //
@@ -146,14 +161,22 @@ Planet.Draw = function(planet)
 	love.graphics.push();
 	love.graphics.rotate(math.rad(planet.rotation));
 
-	love.graphics.setColor(75, 175, 209, 255);
+	love.graphics.setColor(
+		Planet.WATER_COLOR.r, Planet.WATER_COLOR.g,
+		Planet.WATER_COLOR.b, Planet.WATER_COLOR.a
+	);
+
 	love.graphics.circle('fill', 0, 0, planet.water_level, Planet.WATER_SIDES);
 
 	love.graphics.setColor(255, 255, 255, 255);
+
+	love.graphics.draw(planet.logic_mesh, 0, 0);
 	love.graphics.draw(planet.crust_mesh, 0, 0);
 
-	love.graphics.setColor(206, 184, 177, 255);
-	love.graphics.circle('fill', 0, 0, Planet.CORE_RADIUS, Planet.CORE_SIDES);
+	love.graphics.draw(planet.core,
+		planet.core->getWidth() * -0.5,
+		planet.core->getHeight() * -0.5
+	);
 
 	love.graphics.setColor(255, 255, 255, 255);
 	love.graphics.pop();
@@ -229,12 +252,15 @@ Planet.ImpactPoint = function(planet, i, force)
 	i = Planet.SafeIndex(i);
 
 	let x, y = planet.crust_mesh->getVertex(i);
+	let lx, ly = planet.logic_mesh->getVertex(i);
+
 	let h = math.rad(i * (360 / (Planet.CRUST_SIDES - 1)));
 
-	x += (math.cos(h) * force);
-	y += (math.sin(h) * force);
+	let ox= (math.cos(h) * force);
+	let oy = (math.sin(h) * force);
 
-	planet.crust_mesh->setVertexAttribute(i, 1, x, y);
+	planet.crust_mesh->setVertexAttribute(i, 1, x + ox, y + oy);
+	planet.logic_mesh->setVertexAttribute(i, 1, lx + ox, ly + oy);
 
 	let dist = (x * x) + (y * y);
 
@@ -261,44 +287,36 @@ Planet.SafeIndex = function(i)
 
 Planet.UpdateEffect = function(planet, i, ice, life, level)
 {
-	let r = Planet.CRUST_R;
-	let g = Planet.CRUST_G;
-	let b = Planet.CRUST_B;
+	let c = Planet.NONE_COLOR;
 
 	if(life == LIFE.ANIMAL)
 	{
-		r = Planet.ANIMAL_R;
-		g = Planet.ANIMAL_G;
-		b = Planet.ANIMAL_B;
+		c = Planet.ANIMAL_COLOR;
 	}
 	else if(life == LIFE.VEGETAL)
 	{
-		r = Planet.VEGETAL_R;
-		g = Planet.VEGETAL_G;
-		b = Planet.VEGETAL_B;
+		c = Planet.VEGETAL_COLOR;
 	}
 	else if(life == LIFE.MUSHROOM)
 	{
-		r = Planet.SHROOM_R;
-		g = Planet.SHROOM_G;
-		b = Planet.SHROOM_B;
+		c = Planet.SHROOM_COLOR;
 	}
 
 	if(ice > 0)
 	{
-		// TODO
+		c = Planet.ICE_COLOR;
 	}
 
-	Planet.SetColor(planet, i, r, g, b);
+	Planet.SetColor(planet, i, c);
 
 	for(let j = i ... i - Planet.LOGIC_RADIUS ... -1)
 	{
-		Planet.SetColor(planet, Planet.SafeIndex(j), r, g, b);
+		Planet.SetColor(planet, Planet.SafeIndex(j), c);
 	}
 
 	for(let j = i ... i + Planet.LOGIC_RADIUS)
 	{
-		Planet.SetColor(planet, Planet.SafeIndex(j), r, g, b);
+		Planet.SetColor(planet, Planet.SafeIndex(j), c);
 	}
 };
 
@@ -319,7 +337,7 @@ Planet.RaiseWaterLevel = function(planet, delta)
 
 //
 
-Planet.SetColor = function(planet, i, r, g, b)
+Planet.SetColor = function(planet, i, c)
 {
-	planet.crust_mesh->setVertexAttribute(i, 3, r, g, b, 255);
+	planet.logic_mesh->setVertexAttribute(i, 3, c.r, c.g, c.b, 255);
 };

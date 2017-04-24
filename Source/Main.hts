@@ -5,10 +5,14 @@ require('meteorsmanager');
 require('planet');
 require('planetstatemanager');
 
+let background = null;
+
 let planet, time_manager, meteors_manager, planet_state_manager;
 
 love.load = function()
 {
+	background = love.graphics.newImage('textures/background.png');
+
     meteors_manager = MeteorsManager.New();
     planet = Planet.New();
     time_manager = TimeManager.New();
@@ -40,6 +44,8 @@ love.update = function(dt)
 
 love.draw = function()
 {
+	love.graphics.draw(background);
+
     love.graphics.translate(1280 / 2, 720 / 2);
     Planet.Draw(planet);
     MeteorsManager.Draw(meteors_manager);
