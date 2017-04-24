@@ -1,0 +1,70 @@
+GameManager = #{};
+
+let METEORS_INITIAL_COUNTER = 1;
+let METEORS_RESET_COUNTER = 5;
+let PLANET_INITIAL_COUNTER = 5;
+let PLANET_RESET_COUNTER = 5;
+let GAME_COUNTER = 180;
+
+// let TRANSITION_TITLE_COMMANDS = #{
+//     DURATION: 1
+// };
+
+GameManager.STATE = #{
+    TITLE: 0,
+    COMMANDS_INFO: 1,
+    GAME: 2,
+    STATS_MODE: 3,
+    GAME_OVER: 4,
+}
+
+GameManager.New = function() {
+    return #{
+        meteors_spawn_counter: METEORS_INITIAL_COUNTER,
+        planet_counter: PLANET_INITIAL_COUNTER,
+        game_counter: GAME_COUNTER,
+        game_state: GameManager.STATE.TITLE,
+        // transition_progression: 0
+    }
+}
+
+GameManager.UpdateAndGetState = function(manager, dt) {
+    let flag_meteors = false; 
+    let flag_planet = false; 
+
+    manager.meteors_spawn_counter -= dt;
+    manager.planet_counter -= dt;
+    manager.game_counter -= dt;
+    // manager.transition_progression -= dt;
+
+    if (manager.meteors_spawn_counter <= 0) {
+        manager.meteors_spawn_counter = METEORS_RESET_COUNTER;
+        flag_meteors = true;
+    }
+    if (manager.planet_counter <= 0) {
+        manager.planet_counter = PLANET_RESET_COUNTER;
+        flag_planet = true;
+    }
+    if (manager.game_counter <= 0) {
+        manager.game_counter = GAME_COUNTER;
+        flag_meteors = true;
+    }
+
+    //TO_REMOVE
+    if (manager.game_state == GameManager.STATE.COMMANDS_INFO) {
+        manager.game_state = GameManager.STATE.GAME;
+    }
+
+    // if (transition_progression <= 0) {
+    //     transition_progression = 0;
+    //     if (manager.game_state == GameManager.STATE.TRANSITION_TITLE_COMMANDS) {
+    //         manager.game_state = GameManager.STATE.COMMANDS_INFO;
+    //     }
+    // }
+
+    return flag_meteors, flag_planet, manager.game_state;
+}
+
+GameManager.ChangeState = function(manager, newState) {
+    manager.game_state = newState;
+}

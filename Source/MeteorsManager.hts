@@ -105,8 +105,6 @@ MeteorsManager.Resolve_Planet_Collisions = function(manager, planet_state_manage
         logic_index = Utils.FromPlanetIndex(planet_index);
 
         if (collides) {
-            print("Update from collision");
-
             let ice_level = 0;
             let life_type = LIFE.NONE;
             let life_level = 0;
