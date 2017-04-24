@@ -3,14 +3,46 @@ require('meteor');
 MeteorsManager = #;
 
 let MAX_SPAWN_NUMBER = 3;
+
+let ALL_METEORS = #{
+    #{terraformation: Meteor.TYPE.TERRAFORMATION.NEUTRAL, effect: Meteor.TYPE.EFFECT.LIFE_ANIMAL},
+    #{terraformation: Meteor.TYPE.TERRAFORMATION.NEUTRAL, effect: Meteor.TYPE.EFFECT.LIFE_MUSHROOM},
+    #{terraformation: Meteor.TYPE.TERRAFORMATION.NEUTRAL, effect: Meteor.TYPE.EFFECT.LIFE_VEGETAL},
+    #{terraformation: Meteor.TYPE.TERRAFORMATION.NEUTRAL, effect: Meteor.TYPE.EFFECT.ICE},
+    #{terraformation: Meteor.TYPE.TERRAFORMATION.NEUTRAL, effect: Meteor.TYPE.EFFECT.NONE},
+    #{terraformation: Meteor.TYPE.TERRAFORMATION.NEUTRAL, effect: Meteor.TYPE.EFFECT.NONE},
+    #{terraformation: Meteor.TYPE.TERRAFORMATION.NEUTRAL, effect: Meteor.TYPE.EFFECT.NONE},
+    #{terraformation: Meteor.TYPE.TERRAFORMATION.NEUTRAL, effect: Meteor.TYPE.EFFECT.NONE},
+    #{terraformation: Meteor.TYPE.TERRAFORMATION.NEUTRAL, effect: Meteor.TYPE.EFFECT.NONE},
+    #{terraformation: Meteor.TYPE.TERRAFORMATION.MOUNTAIN, effect: Meteor.TYPE.EFFECT.LIFE_ANIMAL},
+    #{terraformation: Meteor.TYPE.TERRAFORMATION.MOUNTAIN, effect: Meteor.TYPE.EFFECT.LIFE_MUSHROOM},
+    #{terraformation: Meteor.TYPE.TERRAFORMATION.MOUNTAIN, effect: Meteor.TYPE.EFFECT.LIFE_VEGETAL},
+    #{terraformation: Meteor.TYPE.TERRAFORMATION.MOUNTAIN, effect: Meteor.TYPE.EFFECT.ICE},
+    #{terraformation: Meteor.TYPE.TERRAFORMATION.MOUNTAIN, effect: Meteor.TYPE.EFFECT.NONE},
+    #{terraformation: Meteor.TYPE.TERRAFORMATION.MOUNTAIN, effect: Meteor.TYPE.EFFECT.NONE},
+    #{terraformation: Meteor.TYPE.TERRAFORMATION.MOUNTAIN, effect: Meteor.TYPE.EFFECT.NONE},
+    #{terraformation: Meteor.TYPE.TERRAFORMATION.MOUNTAIN, effect: Meteor.TYPE.EFFECT.NONE},
+    #{terraformation: Meteor.TYPE.TERRAFORMATION.MOUNTAIN, effect: Meteor.TYPE.EFFECT.NONE},
+    #{terraformation: Meteor.TYPE.TERRAFORMATION.TNT, effect: Meteor.TYPE.EFFECT.LIFE_ANIMAL},
+    #{terraformation: Meteor.TYPE.TERRAFORMATION.TNT, effect: Meteor.TYPE.EFFECT.LIFE_MUSHROOM},
+    #{terraformation: Meteor.TYPE.TERRAFORMATION.TNT, effect: Meteor.TYPE.EFFECT.LIFE_VEGETAL},
+    #{terraformation: Meteor.TYPE.TERRAFORMATION.TNT, effect: Meteor.TYPE.EFFECT.ICE},
+    #{terraformation: Meteor.TYPE.TERRAFORMATION.TNT, effect: Meteor.TYPE.EFFECT.NONE},
+    #{terraformation: Meteor.TYPE.TERRAFORMATION.TNT, effect: Meteor.TYPE.EFFECT.NONE},
+    #{terraformation: Meteor.TYPE.TERRAFORMATION.TNT, effect: Meteor.TYPE.EFFECT.NONE},
+    #{terraformation: Meteor.TYPE.TERRAFORMATION.TNT, effect: Meteor.TYPE.EFFECT.NONE},
+    #{terraformation: Meteor.TYPE.TERRAFORMATION.TNT, effect: Meteor.TYPE.EFFECT.NONE}
+}
+
 let METEORS_SPAWN_SETS = #{
     #{
         nb_of_spanws: 3,
         spawn_sizes: #{1, 1, 1},
         meteors: #{
-            #{terraformation: Meteor.TYPE.TERRAFORMATION.MOUNTAIN, effect: Meteor.TYPE.EFFECT.NEUTRAL},
-            #{terraformation: Meteor.TYPE.TERRAFORMATION.MOUNTAIN, effect: Meteor.TYPE.EFFECT.NEUTRAL},
-            #{terraformation: Meteor.TYPE.TERRAFORMATION.TNT, effect: Meteor.TYPE.EFFECT.NEUTRAL}
+            // #{terraformation: Meteor.TYPE.TERRAFORMATION.MOUNTAIN, effect: Meteor.TYPE.EFFECT.NEUTRAL},
+            // #{terraformation: Meteor.TYPE.TERRAFORMATION.TNT, effect: Meteor.TYPE.EFFECT.NEUTRAL}
+            #{terraformation: Meteor.TYPE.TERRAFORMATION.MOUNTAIN, effect: Meteor.TYPE.EFFECT.ICE},
+            #{terraformation: Meteor.TYPE.TERRAFORMATION.TNT, effect: Meteor.TYPE.EFFECT.ICE}
         }
     },
     #{
@@ -24,20 +56,14 @@ let METEORS_SPAWN_SETS = #{
     },
     #{
         nb_of_spanws: 10,
-        spawn_sizes: #{3, 2, 1, 2, 1, 1},
-        meteors: #{
-            #{terraformation: Meteor.TYPE.TERRAFORMATION.NEUTRAL, effect: Meteor.TYPE.EFFECT.LIFE_ANIMAL},
-            #{terraformation: Meteor.TYPE.TERRAFORMATION.NEUTRAL, effect: Meteor.TYPE.EFFECT.LIFE_MUSHROOM},
-            #{terraformation: Meteor.TYPE.TERRAFORMATION.NEUTRAL, effect: Meteor.TYPE.EFFECT.LIFE_VEGETAL},
-            #{terraformation: Meteor.TYPE.TERRAFORMATION.NEUTRAL, effect: Meteor.TYPE.EFFECT.LIFE_VEGETAL},
-            #{terraformation: Meteor.TYPE.TERRAFORMATION.NEUTRAL, effect: Meteor.TYPE.EFFECT.LIFE_VEGETAL},
-            #{terraformation: Meteor.TYPE.TERRAFORMATION.NEUTRAL, effect: Meteor.TYPE.EFFECT.LIFE_VEGETAL},
-            #{terraformation: Meteor.TYPE.TERRAFORMATION.NEUTRAL, effect: Meteor.TYPE.EFFECT.LIFE_VEGETAL},
-            #{terraformation: Meteor.TYPE.TERRAFORMATION.NEUTRAL, effect: Meteor.TYPE.EFFECT.LIFE_VEGETAL},
-            #{terraformation: Meteor.TYPE.TERRAFORMATION.NEUTRAL, effect: Meteor.TYPE.EFFECT.LIFE_VEGETAL},
-            #{terraformation: Meteor.TYPE.TERRAFORMATION.NEUTRAL, effect: Meteor.TYPE.EFFECT.LIFE_VEGETAL}
-        }
-    }
+        spawn_sizes: #{2, 2, 1, 1, 1, 1, 1, 1},
+        meteors: ALL_METEORS
+    },
+    #{
+        nb_of_spanws: 20,
+        spawn_sizes: #{2, 2, 2, 2, 2, 3, 3, 3},
+        meteors: ALL_METEORS
+    },
 }
 
 let SPAWN_RANGES = #{
@@ -72,24 +98,63 @@ MeteorsManager.Draw = function(manager) {
     }
 }
 
-MeteorsManager.Resolve_Planet_Collisions = function(manager, planet) {
+MeteorsManager.Resolve_Planet_Collisions = function(manager, planet_state_manager) {
 	for(let i, meteor in ##(manager.alive_meteors))
 	{
-        let collides, index = Planet.Collides(planet, meteor);
+        let collides, planet_index = Planet.Collides(planet_state_manager.draw_planet, meteor);
+        logic_index = Utils.FromPlanetIndex(planet_index);
+
         if (collides) {
+            print("Update from collision");
+
+            let ice_level = 0;
+            let life_type = LIFE.NONE;
+            let life_level = 0;
+
             if (meteor.type_terraformation == Meteor.TYPE.TERRAFORMATION.MOUNTAIN) {
-                Planet.Impact(planet, index, Meteor.DEFAULT_IMPACT_FORCE);
+                PlanetStateManager.Impact(planet_state_manager, logic_index, Meteor.DEFAULT_IMPACT_FORCE);
             }
             if (meteor.type_terraformation == Meteor.TYPE.TERRAFORMATION.TNT) {
-                Planet.Impact(planet, index, -Meteor.DEFAULT_IMPACT_FORCE);
+                PlanetStateManager.Impact(planet_state_manager, logic_index, -Meteor.DEFAULT_IMPACT_FORCE);
             }
+
+            if (meteor.type_effect == Meteor.TYPE.EFFECT.ICE) {
+                ice_level = ICE_MAX_LEVEL; 
+            }
+            
+            if (meteor.type_effect == Meteor.TYPE.EFFECT.LIFE_ANIMAL) {
+                life_type = LIFE.ANIMAL;
+                life_level = 1;
+            }
+            
+            if (meteor.type_effect == Meteor.TYPE.EFFECT.LIFE_MUSHROOM) {
+                life_type = LIFE.MUSHROOM;
+                life_level = 1;
+            }
+            
+            if (meteor.type_effect == Meteor.TYPE.EFFECT.LIFE_VEGETAL) {
+                life_type = LIFE.VEGETAL;
+                life_level = 1;
+            }
+
+            PlanetStateManager.UpdateEffect(
+                planet_state_manager, 
+                logic_index,
+                ice_level,
+                life_type,
+                life_level
+            );
+
             table.remove(manager.alive_meteors, i);
         }
 	}
 }
 
 function Spawn_meteors(manager) {
-    if (table.getn(manager.spawn_stack) <= 0) {
+    let spawn_stack_is_empty = table.getn(manager.spawn_stack) <= 0;
+    let spawn_number_stack_is_empty = table.getn(manager.spawn_number_stack) <= 0;
+
+    if (spawn_stack_is_empty || spawn_number_stack_is_empty) {
         let there_are_spawns_sets_left = Initiate_Stack(manager); 
         if (!there_are_spawns_sets_left) {
             return;

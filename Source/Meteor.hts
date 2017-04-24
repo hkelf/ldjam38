@@ -14,18 +14,23 @@ Meteor.TYPE = #{
         LIFE_VEGETAL: 4,
         ATMOSPHERE_OXYGEN: 5,
         ATMOSPHERE_CO2: 6,
-        ATMOSPHERE_SPORES: 7, //lol
-
+        ATMOSPHERE_SPORES: 7 //lol
     }
 }
 
-Meteor.SPEED = 150;
+Meteor.SPEED = 300;
 Meteor.MIN_RADIUS = 8;
 Meteor.MAX_RADIUS = 12;
 Meteor.RADIUS = 10;
 Meteor.ORIGIN_RADIUS = 830;
 Meteor.NB_OF_VERTICES = 12;
-Meteor.DEFAULT_IMPACT_FORCE = 20;
+Meteor.DEFAULT_IMPACT_FORCE = 10;
+
+Meteor.COLORS = #{
+    TNT: #{ R: 255, G: 93, B: 0 },
+    MOUNTAIN: #{ R: 114, G: 84, B: 71 },
+    NEUTRAL: #{ R: 150, G: 150, B: 150 }
+}
 
 let Get_mesh = function(
     type_terraformation,
@@ -37,13 +42,13 @@ let Get_mesh = function(
     let color = #{};
 
     if (type_terraformation == Meteor.TYPE.TERRAFORMATION.MOUNTAIN) { 
-        color.r = 175; color.g = 121; color.b = 149;
+        color.r = Meteor.COLORS.MOUNTAIN.R; color.g = Meteor.COLORS.MOUNTAIN.G; color.b = Meteor.COLORS.MOUNTAIN.B;
     };
     if (type_terraformation == Meteor.TYPE.TERRAFORMATION.TNT) { 
-        color.r = 255; color.g = 93; color.b = 0;
+        color.r = Meteor.COLORS.TNT.R; color.g = Meteor.COLORS.TNT.G; color.b = Meteor.COLORS.TNT.B;
     };
     if (type_terraformation == Meteor.TYPE.TERRAFORMATION.NEUTRAL) { 
-        color.r = 200; color.g = 200; color.b = 200;
+        color.r = Meteor.COLORS.NEUTRAL.R; color.g = Meteor.COLORS.NEUTRAL.G; color.b = Meteor.COLORS.NEUTRAL.B;
     };
 
 	for(let i = 1 ... Meteor.NB_OF_VERTICES)
@@ -56,8 +61,6 @@ let Get_mesh = function(
 			0, 0, color.r, color.g, color.b, 255
 		);
 	}
-
-// setVertex
 
     return mesh;
 }
@@ -113,8 +116,4 @@ Meteor.Update = function(meteor, dt)
     meteor.position.x -= math.cos(meteor.origin) * Meteor.SPEED * dt;   
     meteor.position.y -= math.sin(meteor.origin) * Meteor.SPEED * dt;
     meteor.rotation += dt * meteor.rotation_orientation;
-    // meteor.rotation += dt;
-
-    // meteor.position.x -= math.cos(meteor.origin) * Meteor.SPEED * 1;   
-    // meteor.position.y -= math.sin(meteor.origin) * Meteor.SPEED * 1;   
 }

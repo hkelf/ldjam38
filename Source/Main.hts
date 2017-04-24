@@ -3,14 +3,16 @@ require('constants');
 require('timemanager');
 require('meteorsmanager');
 require('planet');
+require('planetstatemanager');
 
-let planet, time_manager, meteors_manager;
+let planet, time_manager, meteors_manager, planet_state_manager;
 
 love.load = function()
 {
     meteors_manager = MeteorsManager.New();
     planet = Planet.New();
     time_manager = TimeManager.New();
+    planet_state_manager = PlanetStateManager.New(planet);
 };
 
 //
@@ -24,14 +26,14 @@ love.update = function(dt)
     MeteorsManager.Update(meteors_manager, dt, spawn_meteors);
 
     if (update_planet) {
-
+        PlanetStateManager.Update(planet_state_manager);
     }
 
     if (game_time_out) {
 
     }
 
-    MeteorsManager.Resolve_Planet_Collisions(meteors_manager, planet);
+    MeteorsManager.Resolve_Planet_Collisions(meteors_manager, planet_state_manager);
 };
 
 //

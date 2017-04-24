@@ -1,0 +1,226 @@
+PlanetStateManager = #{};
+
+let POP_LEVEL_UP_PROBA_PERCENTAGE = 10;
+let POP_CONFLICT_LVL_DIFF_COEFF = 1.5;
+let POP_CONFLICT_PROBA_PERCENTAGE = 20;
+let POP_CONFLICT_PROBA_PERCENTAGE_IF_NEUTRAL = 40;
+let POP_CONFLICT_CONQUEST_LEVEL = 1;
+let WATER_INCREASE_STEP = 1;
+
+let POWER_BALANCE = #{};
+POWER_BALANCE[LIFE.MUSHROOM] = LIFE.ANIMAL;
+POWER_BALANCE[LIFE.ANIMAL] = LIFE.VEGETAL;
+POWER_BALANCE[LIFE.VEGETAL] = LIFE.MUSHROOM;
+
+
+
+let NB_OF_SECTORS = 32;
+
+PlanetStateManager.New = function(planet) {
+    let new_state_manager = #{
+        draw_planet: planet,
+        logic_planet: #{
+            water_level: 0,
+            sectors: #{}
+        }
+    };
+
+    for (let i=1 ... NB_OF_SECTORS) {
+        table.insert(
+            new_state_manager.logic_planet.sectors,
+            #{
+                index: i,
+                ice_level: 0,
+                is_flooded: false,
+                height: Planet.CRUST_RADIUS,
+                life: #{
+                    type: LIFE.NONE,
+                    level: 0
+                }
+            }
+        );
+    }
+    
+    return new_state_manager; 
+}
+
+PlanetStateManager.Update = function(planet_state_manager) {
+    Update_Ice(sectors, planet_state_manager);
+    Update_Population(planet_state_manager);
+}
+
+function Update_Ice(sectors, planet_state_manager) {
+    let sectors = planet_state_manager.logic_planet.sectors;
+
+    for (let index, sector in ##(sectors)) {
+        if (sector.ice_level > 0) {
+            sector.ice_level --;
+
+            if (sector.ice_level == 0) {                
+                PlanetStateManager.Raise_Water_Level(planet_state_manager, WATER_INCREASE_STEP);
+            }
+            PlanetStateManager.UpdateEffect(
+                planet_state_manager, 
+                index,
+                sector.ice_level,
+                sector.life.type,
+                sector.life.level
+            );
+        }
+    }
+}
+
+function Update_Population(planet_state_manager) {
+    let conflict_stack = #{};
+    let planet_state = planet_state_manager.logic_planet;
+
+    for(let index, sector in ##(planet_state.sectors)) {
+        if (sector.ice_level == 0 && sector.life.type != LIFE.NONE) {
+            let left_sector = Get_Left_Sector(planet_state.sectors, index);
+            let right_sector = Get_Right_Sector(planet_state.sectors, index);
+            Check_And_Register_Conflict(conflict_stack, sector, left_sector, planet_state);
+            Check_And_Register_Conflict(conflict_stack, sector, right_sector, planet_state);
+        }
+    }
+
+    for (let i, conflict in ##(conflict_stack)) {
+        Apply_Conflict(planet_state_manager, conflict);
+        conflict_stack[i] = nil;
+    }
+}
+
+function Check_And_Register_Conflict(conflict_stack, attacker_sector, defenser_sector, planet_state) {
+    let d100 = math.random(100);
+
+    if (defenser_sector.ice_level > 0) {
+        return;
+    }
+
+    let defenser_is_flooded = Is_Flooded(defenser_sector, planet_state.water_level); 
+    let attacker_is_flooded = Is_Flooded(attacker_sector, planet_state.water_level); 
+
+    if (defenser_is_flooded != attacker_is_flooded) {
+        return;
+    }
+
+    if (POWER_BALANCE[attacker_sector.life.type] == defenser_sector.life.type) {
+        if (attacker_sector.life.level >= defenser_sector.life.level) {
+            if (d100 < POP_CONFLICT_PROBA_PERCENTAGE + (attacker_sector.life.level - defenser_sector.life.level) * POP_CONFLICT_LVL_DIFF_COEFF) {
+                table.insert(conflict_stack, #{ attacker_sector, defenser_sector }); 
+            }
+        }
+    }
+
+    if (defenser_sector.life.type == LIFE.NONE) {
+        if (d100 < POP_CONFLICT_PROBA_PERCENTAGE_IF_NEUTRAL) {
+            table.insert(conflict_stack, #{ attacker_sector, defenser_sector }); 
+        }
+    }
+}
+
+function Apply_Conflict(planet_state_manager, conflict) {
+    let attacker_sector = conflict[1];
+    let defenser_sector = conflict[2];
+
+    PlanetStateManager.UpdateEffect(
+        planet_state_manager, 
+        defenser_sector.index,
+        defenser_sector.ice_level,
+        attacker_sector.life.type,
+        POP_CONFLICT_CONQUEST_LEVEL
+    );
+}
+
+function Is_Flooded(sector, water_level) {
+    return sector.height < water_level;
+}
+
+PlanetStateManager.UpdateEffect = function(
+    planet_state_manager, 
+    index,
+    ice_level,
+    life_type,
+    life_level
+) {
+    Planet.UpdateEffect(
+        planet_state_manager.draw_planet, 
+        Utils.FromLogicIndex(index),
+        ice_level,
+        life_type,
+        life_level
+    );
+
+    print("Update " .. index .. " ice " .. ice_level .. " life_type " .. life_type .. " life_level " .. life_level);
+
+    let sector = planet_state_manager.logic_planet.sectors[index];
+
+    sector.ice_level = ice_level;
+    sector.life.type = life_type;
+    sector.life.level = life_level;
+}
+
+PlanetStateManager.Raise_Water_Level = function(planet_state_manager, delta)
+{
+    Planet.RaiseWaterLevel(planet_state_manager.draw_planet, delta);
+    planet_state_manager.logic_planet.water_level += delta;
+    
+    for(let i, sector in ##(planet_state_manager.logic_planet.sectors)) {
+        print(sector.water_level);
+        let has_been_flooded = Is_Flooded(sector, planet_state_manager.logic_planet.water_level) && !Is_Flooded(sector, planet_state_manager.logic_planet.water_level - delta);
+        let has_been_dried = !Is_Flooded(sector, planet_state_manager.logic_planet.water_level) && Is_Flooded(sector, planet_state_manager.logic_planet.water_level - delta);
+
+        if (has_been_dried || has_been_flooded) {
+            PlanetStateManager.UpdateEffect(
+                planet_state_manager, 
+                i,
+                sector.ice_level,
+                LIFE.NONE,
+                0
+            );
+        }
+    }
+};
+
+function Get_Left_Sector(sectors, index) {
+    let new_index; 
+
+    if (index == 1) {
+        new_index = table.getn(sectors);
+    } 
+    else {
+        new_index = index - 1;
+    }
+
+
+    return sectors[new_index];
+}
+function Get_Right_Sector(sectors, index) {
+    let new_index; 
+
+    if (index == table.getn(sectors)) {
+        new_index = 1
+    } 
+    else {
+        new_index = index + 1;
+    }
+
+
+    return sectors[new_index];
+}
+
+PlanetStateManager.Impact = function(planet_manager, index, force) {
+    Planet.Impact(planet_manager.draw_planet, Utils.FromLogicIndex(index), force);
+
+    let sector = planet_manager.logic_planet.sectors[index];
+
+    sector.height += force;
+}
+
+function Log_Sectors(title, planet_state_manager) {
+    print("===" .. title .. "===")
+        print("water: " .. planet_state_manager.logic_planet.water_level);
+    for(let index, sector in ##(planet_state_manager.logic_planet.sectors)) {
+        print(index .. " -> " .. "ice:" .. sector.ice_level .. " life_type:" .. sector.life.type .. " life_level:" .. sector.life.level);
+    }
+    print("=====================")
+}

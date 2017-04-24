@@ -12,7 +12,7 @@ Planet.CORE_SIDES = 32;
 Planet.CORE_RADIUS = 5;
 
 Planet.CRUST_SIDES = 64;
-Planet.CRUST_RADIUS = 150;
+Planet.CRUST_RADIUS = 75;
 
 Planet.IMPACT_HIGH = 0.9;
 Planet.IMPACT_MED = 0.7;
