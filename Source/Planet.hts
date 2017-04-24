@@ -8,7 +8,7 @@ Planet = #;
 
 //
 
-Planet.CRUST_SIDES = 64;
+Planet.CRUST_SIDES = 128;
 Planet.CRUST_RADIUS = 150;
 
 Planet.IMPACT_HIGH = 0.9;
