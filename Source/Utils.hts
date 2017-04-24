@@ -32,12 +32,12 @@ Utils = #;
 
 Utils.FromPlanetIndex = function(i)
 {
-	return math.floor((i * NB_OF_SECTORS) / Planet.CRUST_SIDES);
+	return math.floor(((i - 1) * NB_OF_SECTORS) / Planet.CRUST_SIDES);
 };
 
 //
 
 Utils.FromLogicIndex = function(i)
 {
-	return math.floor((i * Planet.CRUST_SIDES) / NB_OF_SECTORS) + 1;
+	return math.floor((i * Planet.CRUST_SIDES) / NB_OF_SECTORS) + 2;
 };
